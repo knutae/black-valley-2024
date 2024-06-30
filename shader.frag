@@ -78,17 +78,43 @@ float ground(vec3 p) {
     return horizontal_plane(p, -1);
 }
 
-void skyscraper(vec3 p, inout float dist, inout ma mat) {
-    vec3 dimensions = vec3(21, 200, 21);
+void skyscraper(vec3 p, inout float dist, inout ma mat, vec3 dimensions) {
     float window_modulo = 2;
     closest_material(dist, mat, skyscraper_exterior(p, dimensions, window_modulo), ma(0.1, 0.9, 0, 10, 0, vec3(0.1)));
     closest_material(dist, mat, skyscraper_interior(p, dimensions - vec3(0.1)), ma(window_ambience(p, window_modulo), 0.1, 0, 10, 0, vec3(0.9, 0.8, 0.5)));
 }
 
+void repeated_skyscrapers(vec3 p, inout float dist, inout ma mat, float building_modulo, float base_seed) {
+    float divx = floor((p.x - 0.5 * building_modulo) / building_modulo);
+    float divz = floor((p.z - 0.5 * building_modulo) / building_modulo);
+    float building_seed = base_seed + round(9949 * (divx + 9967 * divz));
+    building_seed += round(9949 * (divz + 9967 * divx));
+    p.x = mod(p.x - building_modulo * 0.5, building_modulo) - building_modulo * 0.5;
+    p.z = mod(p.z - building_modulo * 0.5, building_modulo) - building_modulo * 0.5;
+    float height = 150 + mod(building_seed, 50);
+    vec3 dimensions = vec3(21, height, 21);
+    skyscraper(p, dist, mat, dimensions);
+}
+
+float pseudo_random(inout float seed) {
+    seed = round(mod(seed * 127, 123453));
+    return seed;
+}
+
+void repeated_random_buildings(vec3 p, inout float dist, inout ma mat) {
+    float building_modulo = 200;
+    float offset = building_modulo/2;
+    float seed = 1337;
+    repeated_skyscrapers(p, dist, mat, building_modulo, pseudo_random(seed));
+    repeated_skyscrapers(p + vec3(offset,0,0), dist, mat, building_modulo, pseudo_random(seed));
+    repeated_skyscrapers(p + vec3(0,0,offset), dist, mat, building_modulo, pseudo_random(seed));
+    repeated_skyscrapers(p + vec3(offset,0,offset), dist, mat, building_modulo, pseudo_random(seed));
+}
+
 float scene(vec3 p, out ma mat) {
     float dist = ground(p);
     mat = ma(0.1, 0.9, 0, 10, 0.0, vec3(0.8));
-    skyscraper(p, dist, mat);
+    repeated_random_buildings(p, dist, mat);
     return dist;
 }
 
@@ -182,8 +208,8 @@ vec3 apply_reflections(vec3 color, ma mat, vec3 p, vec3 direction) {
 }
 
 vec3 render(float u, float v) {
-    vec3 eye_position = vec3(-80, 250, 200);
-    vec3 forward = normalize(vec3(0, 100, -3) - eye_position);
+    vec3 eye_position = vec3(80, 250, 200);
+    vec3 forward = normalize(vec3(0, 120, -3) - eye_position);
     vec3 up = vec3(0.0, 1.0, 0.0);
     vec3 right = normalize(cross(up, forward));
     up = cross(-right, forward);
