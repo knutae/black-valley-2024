@@ -57,14 +57,17 @@ float skyscraper_interior(vec3 p, vec3 dimensions) {
     return origin_box(p, dimensions, 0.1);
 }
 
-float window_ambience(vec3 p, float modulo) {
+float window_ambience(vec3 p, float modulo, float exponent) {
     // pseudorandom based on window position
     float divx = floor((p.x - 0.5 * modulo) / modulo);
     float divy = floor((p.y - 0.5 * modulo) / modulo);
     float divz = floor((p.z - 0.5 * modulo) / modulo);
     float seed = round(9949 * (divx + 9967 * (divy + 9973 * divz)));
     seed += round(9949 * (divz + 9967 * (divy + 9973 * divx)));
-    return 0.5 + 0.5 * sin(mod(seed, 1000));
+    float a = 0.5 + 0.5 * sin(mod(seed, 1000));
+    // higher exponents makes windows darker
+    exponent /= abs(mod(abs(divy * (9967 + divy * 9973)), 3)); // brighten some floors
+    return pow(a, exponent);
 }
 
 void closest_material(inout float dist, inout ma mat, float new_dist, ma new_mat) {
@@ -78,10 +81,11 @@ float ground(vec3 p) {
     return horizontal_plane(p, -1);
 }
 
-void skyscraper(vec3 p, inout float dist, inout ma mat, vec3 dimensions) {
+void skyscraper(vec3 p, inout float dist, inout ma mat, vec3 dimensions, float building_seed) {
     float window_modulo = 2;
     closest_material(dist, mat, skyscraper_exterior(p, dimensions, window_modulo), ma(0.1, 0.9, 0, 10, 0, vec3(0.1)));
-    closest_material(dist, mat, skyscraper_interior(p, dimensions - vec3(0.1)), ma(window_ambience(p, window_modulo), 0.1, 0, 10, 0, vec3(0.9, 0.8, 0.5)));
+    float ambience_exponent = 5 + abs(mod(building_seed, 10));
+    closest_material(dist, mat, skyscraper_interior(p, dimensions - vec3(0.1)), ma(window_ambience(p, window_modulo, ambience_exponent), 0.1, 0, 10, 0, vec3(0.9, 0.8, 0.5)));
 }
 
 float round_odd(float x) {
@@ -97,12 +101,12 @@ void repeated_skyscrapers(vec3 p, inout float dist, inout ma mat, float building
     p.x = mod(p.x - building_modulo * 0.5, building_modulo) - building_modulo * 0.5;
     p.z = mod(p.z - building_modulo * 0.5, building_modulo) - building_modulo * 0.5;
     float height = round_odd(150 + mod(building_seed, 50));
-    building_seed = round(building_seed / 50);
-    float width = round_odd(10 + mod(building_seed, 25));
-    building_seed = round(building_seed / 25);
-    float depth = round_odd(10 + mod(building_seed, 25));
+    float size_seed = round(building_seed / 50);
+    float width = round_odd(10 + mod(size_seed, 25));
+    size_seed = round(size_seed / 25);
+    float depth = round_odd(10 + mod(size_seed, 25));
     vec3 dimensions = vec3(width, height, depth);
-    skyscraper(p, dist, mat, dimensions);
+    skyscraper(p, dist, mat, dimensions, building_seed);
 }
 
 float pseudo_random(inout float seed) {
