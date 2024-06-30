@@ -22,11 +22,7 @@ struct ma {
     vec3 C; // RGB color
 };
 
-float DRAW_DISTANCE = 500.0;
-
-float origin_sphere(vec3 p, float radius) {
-    return length(p) - radius;
-}
+float DRAW_DISTANCE = 5000.0;
 
 float horizontal_plane(vec3 p, float height) {
     return p.y - height;
@@ -37,6 +33,40 @@ float origin_box(vec3 p, vec3 dimensions, float corner_radius) {
     return length(max(abs(p) - dimensions, 0.0)) - corner_radius;
 }
 
+float repeated_windows(vec2 p, vec2 dimensions, float modulo) {
+    p = mod(p - 0.5 * modulo, modulo) - 0.5 * modulo;
+    return length(max(abs(p) - dimensions, 0.0)) - 0.01;
+}
+
+float skyscraper_windows(vec3 p, float max_floors, vec2 window_dimensions, float modulo) {
+    float d_xy = repeated_windows(p.xy, window_dimensions, modulo);
+    float d_yz = repeated_windows(p.yz, window_dimensions, modulo);
+    float d = min(d_xy, d_yz);
+    return max(d, p.y - max_floors * modulo - 0.5 * modulo);
+}
+
+float skyscraper_exterior(vec3 p, vec3 dimensions, float window_modulo) {
+    float max_floors = floor(dimensions.y / window_modulo) - 1;
+    return
+        max(
+            origin_box(p, dimensions, 0.1),
+            -skyscraper_windows(p, max_floors, vec2(0.6, 0.5), window_modulo));
+}
+
+float skyscraper_interior(vec3 p, vec3 dimensions) {
+    return origin_box(p, dimensions, 0.1);
+}
+
+float window_ambience(vec3 p, float modulo) {
+    // pseudorandom based on window position
+    float divx = floor((p.x - 0.5 * modulo) / modulo);
+    float divy = floor((p.y - 0.5 * modulo) / modulo);
+    float divz = floor((p.z - 0.5 * modulo) / modulo);
+    float seed = round(9949 * (divx + 9967 * (divy + 9973 * divz)));
+    seed += round(9949 * (divz + 9967 * (divy + 9973 * divx)));
+    return 0.5 + 0.5 * sin(mod(seed, 1000));
+}
+
 void closest_material(inout float dist, inout ma mat, float new_dist, ma new_mat) {
     if (new_dist < dist) {
         dist = new_dist;
@@ -44,21 +74,21 @@ void closest_material(inout float dist, inout ma mat, float new_dist, ma new_mat
     }
 }
 
-float repeated_boxes_xz(vec3 p, vec3 dimensions, float corner_radius, float modulo) {
-    p.xz = mod(p.xz - 0.5 * modulo, modulo) - 0.5 * modulo;
-    return origin_box(p, dimensions, corner_radius);
+float ground(vec3 p) {
+    return horizontal_plane(p, -1);
 }
 
-float ground(vec3 p) {
-    return min(
-        horizontal_plane(p, -1),
-        repeated_boxes_xz(vec3(p.x, p.y+2, p.z), vec3(1), 0.1, 5));
+void skyscraper(vec3 p, inout float dist, inout ma mat) {
+    vec3 dimensions = vec3(21, 200, 21);
+    float window_modulo = 2;
+    closest_material(dist, mat, skyscraper_exterior(p, dimensions, window_modulo), ma(0.1, 0.9, 0, 10, 0, vec3(0.1)));
+    closest_material(dist, mat, skyscraper_interior(p, dimensions - vec3(0.1)), ma(window_ambience(p, window_modulo), 0.1, 0, 10, 0, vec3(0.9, 0.8, 0.5)));
 }
 
 float scene(vec3 p, out ma mat) {
-    float dist = origin_sphere(p, 1);
-    mat = ma(0.1, 0.9, 0, 10, 0.5, vec3(0.8));
-    closest_material(dist, mat, ground(p), ma(0.1, 0.9, 0, 10, 0.0, vec3(0.8)));
+    float dist = ground(p);
+    mat = ma(0.1, 0.9, 0, 10, 0.0, vec3(0.8));
+    skyscraper(p, dist, mat);
     return dist;
 }
 
@@ -112,10 +142,10 @@ float soft_shadow(vec3 p, vec3 light_direction, float sharpness) {
     return res;
 }
 
-const vec3 background_color = vec3(0.8, 0.9, 1.0);
+const vec3 background_color = vec3(0.3, 0.2, 0.15);
 
 vec3 apply_fog(vec3 color, float total_distance) {
-    return mix(color, background_color, 1.0 - exp(-0.01 * total_distance));
+    return mix(color, background_color, 1.0 - exp(-0.001 * total_distance));
 }
 
 vec3 phong_lighting(vec3 p, ma mat, vec3 ray_direction) {
@@ -152,8 +182,8 @@ vec3 apply_reflections(vec3 color, ma mat, vec3 p, vec3 direction) {
 }
 
 vec3 render(float u, float v) {
-    vec3 eye_position = vec3(0, 3, 4);
-    vec3 forward = normalize(vec3(0, 0, -3) - eye_position);
+    vec3 eye_position = vec3(-80, 250, 200);
+    vec3 forward = normalize(vec3(0, 100, -3) - eye_position);
     vec3 up = vec3(0.0, 1.0, 0.0);
     vec3 right = normalize(cross(up, forward));
     up = cross(-right, forward);
@@ -198,8 +228,8 @@ void main() {
     F = render_aa(u, v);
 #endif
     // vignette
-    float edge = abs(C.x - 1) + abs(C.y - 1);
-    F = mix(F, vec3(0), min(1, max(0, edge*0.3 - 0.2)));
+    //float edge = abs(C.x - 1) + abs(C.y - 1);
+    //F = mix(F, vec3(0), min(1, max(0, edge*0.3 - 0.2)));
 #ifdef SPIRV
     outColor = vec4(F, 0);
 #endif
