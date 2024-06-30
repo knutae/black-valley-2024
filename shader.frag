@@ -84,6 +84,11 @@ void skyscraper(vec3 p, inout float dist, inout ma mat, vec3 dimensions) {
     closest_material(dist, mat, skyscraper_interior(p, dimensions - vec3(0.1)), ma(window_ambience(p, window_modulo), 0.1, 0, 10, 0, vec3(0.9, 0.8, 0.5)));
 }
 
+float round_odd(float x) {
+    x = round(x);
+    return x + 1 - mod(x, 2);
+}
+
 void repeated_skyscrapers(vec3 p, inout float dist, inout ma mat, float building_modulo, float base_seed) {
     float divx = floor((p.x - 0.5 * building_modulo) / building_modulo);
     float divz = floor((p.z - 0.5 * building_modulo) / building_modulo);
@@ -91,8 +96,12 @@ void repeated_skyscrapers(vec3 p, inout float dist, inout ma mat, float building
     building_seed += round(9949 * (divz + 9967 * divx));
     p.x = mod(p.x - building_modulo * 0.5, building_modulo) - building_modulo * 0.5;
     p.z = mod(p.z - building_modulo * 0.5, building_modulo) - building_modulo * 0.5;
-    float height = 150 + mod(building_seed, 50);
-    vec3 dimensions = vec3(21, height, 21);
+    float height = round_odd(150 + mod(building_seed, 50));
+    building_seed = round(building_seed / 50);
+    float width = round_odd(10 + mod(building_seed, 25));
+    building_seed = round(building_seed / 25);
+    float depth = round_odd(10 + mod(building_seed, 25));
+    vec3 dimensions = vec3(width, height, depth);
     skyscraper(p, dist, mat, dimensions);
 }
 
