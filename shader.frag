@@ -57,17 +57,28 @@ float skyscraper_interior(vec3 p, vec3 dimensions) {
     return origin_box(p, dimensions, 0.1);
 }
 
-float window_ambience(vec3 p, float modulo, float exponent) {
+ma window_material(vec3 p, float modulo, float building_seed) {
     // pseudorandom based on window position
     float divx = floor((p.x - 0.5 * modulo) / modulo);
     float divy = floor((p.y - 0.5 * modulo) / modulo);
     float divz = floor((p.z - 0.5 * modulo) / modulo);
     float seed = round(9949 * (divx + 9967 * (divy + 9973 * divz)));
     seed += round(9949 * (divz + 9967 * (divy + 9973 * divx)));
-    float a = 0.5 + 0.5 * sin(mod(seed, 1000));
     // higher exponents makes windows darker
-    exponent /= abs(mod(abs(divy * (9967 + divy * 9973)), 3)); // brighten some floors
-    return pow(a, exponent);
+    float a = 0.5 + 0.5 * sin(mod(seed, 1000));
+    float ambience_exponent = 5 + abs(mod(building_seed, 10));
+    ambience_exponent /= abs(mod(abs(divy * (9967 + divy * 9973)), 3)); // brighten some floors
+    float ambience = pow(a, ambience_exponent);
+    // maybe use some color temperature formula for the tint? keep it simple for now
+    vec3 tint = vec3(
+        pow(0.9, 1 + sin(building_seed)),
+        pow(0.9, 1 + sin(building_seed/1e2)),
+        pow(0.6, 1 + sin(building_seed/1e4)));
+    vec3 rgb = vec3(
+        pow(tint.r, 1 + sin(seed)),
+        pow(tint.g, 1 + sin(seed*2)),
+        pow(tint.b, 1 + sin(seed*3)));
+    return ma(ambience, 0.1, 0, 10, 0, rgb);
 }
 
 void closest_material(inout float dist, inout ma mat, float new_dist, ma new_mat) {
@@ -84,8 +95,7 @@ float ground(vec3 p) {
 void skyscraper(vec3 p, inout float dist, inout ma mat, vec3 dimensions, float building_seed) {
     float window_modulo = 2;
     closest_material(dist, mat, skyscraper_exterior(p, dimensions, window_modulo), ma(0.1, 0.9, 0, 10, 0, vec3(0.1)));
-    float ambience_exponent = 5 + abs(mod(building_seed, 10));
-    closest_material(dist, mat, skyscraper_interior(p, dimensions - vec3(0.1)), ma(window_ambience(p, window_modulo, ambience_exponent), 0.1, 0, 10, 0, vec3(0.9, 0.8, 0.5)));
+    closest_material(dist, mat, skyscraper_interior(p, dimensions - vec3(0.1)), window_material(p, window_modulo, building_seed));
 }
 
 float round_odd(float x) {
