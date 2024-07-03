@@ -220,7 +220,7 @@ float soft_shadow(vec3 p, vec3 light_direction, float sharpness) {
 const vec3 background_color = vec3(0.3, 0.2, 0.15);
 
 vec3 apply_fog(vec3 color, float total_distance) {
-    return mix(color, background_color, 1.0 - exp(-0.001 * total_distance));
+    return mix(color, background_color, 1.0 - exp(-0.0003 * total_distance));
 }
 
 vec3 phong_lighting(vec3 p, ma mat, vec3 ray_direction) {
@@ -257,8 +257,8 @@ vec3 apply_reflections(vec3 color, ma mat, vec3 p, vec3 direction) {
 }
 
 vec3 render(float u, float v) {
-    vec3 eye_position = vec3(80, 250, 200);
-    vec3 forward = normalize(vec3(0, 120, -3) - eye_position);
+    vec3 eye_position = vec3(50, 150, 1000);
+    vec3 forward = normalize(vec3(0, 50, -3) - eye_position);
     vec3 up = vec3(0.0, 1.0, 0.0);
     vec3 right = normalize(cross(up, forward));
     up = cross(-right, forward);
