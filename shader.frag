@@ -25,6 +25,7 @@ struct ma {
 float DRAW_DISTANCE = 5000.0;
 float HALF_PI = acos(0);
 float building_modulo = 200;
+float time = 0;
 
 float origin_box(vec3 p, vec3 dimensions, float corner_radius) {
     vec3 a = abs(p);
@@ -111,7 +112,9 @@ mat2 rotate(float degrees) {
 
 float sea(vec3 p) {
     p.xz *= rotate(-20);
-    return p.y + 10 + 0.005 * sin(p.z * 1.25);
+    float wave1 = 0.04 * sin((p.xz * rotate(-20)).y / 4 + 3*time);
+    float wave2 = 0.01 * sin((p.xz * rotate(10)).y + time);
+    return p.y + 10 + wave1 + wave2;
 }
 
 void skyscraper(vec3 p, inout float dist, inout ma mat, vec3 dimensions, float building_seed) {
@@ -289,7 +292,22 @@ vec3 render(float u, float v) {
     return color;
 }
 
-vec3 render_aa(float u, float v) {
+vec3 render_long_exposure(float u, float v, float total_time, int timesteps) {
+    vec3 r_sum = vec3(0);
+    vec3 r_max = vec3(0);
+    float time_delta = total_time / timesteps;
+    for (int i = 0; i < timesteps; i++) {
+        time = i * time_delta;
+        vec3 tmp = render(u, v);
+        r_sum += tmp;
+        r_max = max(r_max, tmp);
+    }
+    vec3 r_avg = r_sum / timesteps;
+    // It's not obvious if the average or the maximum is best, so... whatever, just mix them :-)
+    return mix(r_avg, r_max, 0.5);
+}
+
+vec3 render_aa(float u, float v, float total_time, int timesteps) {
     // Antialiasing: render and blend 2x2 points per pixel.
     // That means the distance between points is 1/2 pixel,
     // and the distance from the center (du, dv) is 1/4 pixel.
@@ -297,10 +315,10 @@ vec3 render_aa(float u, float v) {
     float du = 2.0 / SIZE.x / 4.0;
     float dv = 2.0 / SIZE.y / 4.0;
     vec3 sum =
-        render(u - du, v - dv) +
-        render(u - du, v + dv) +
-        render(u + du, v - dv) +
-        render(u + du, v + dv);
+        render_long_exposure(u - du, v - dv, total_time, timesteps) +
+        render_long_exposure(u - du, v + dv, total_time, timesteps) +
+        render_long_exposure(u + du, v - dv, total_time, timesteps) +
+        render_long_exposure(u + du, v + dv, total_time, timesteps);
     return sum / 4;
 }
 
@@ -311,9 +329,9 @@ void main() {
     vec3 F;
 #endif
 #if defined(DEBUG)
-    F = render(u, v);
+    F = render_long_exposure(u, v, 4, 4);
 #else
-    F = render_aa(u, v);
+    F = render_aa(u, v, 4, 4);
 #endif
     // vignette
     //float edge = abs(C.x - 1) + abs(C.y - 1);
