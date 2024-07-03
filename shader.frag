@@ -81,6 +81,16 @@ ma window_material(vec3 p, float modulo, float building_seed) {
     return ma(ambience, 0.1, 0, 10, 0, rgb);
 }
 
+ma building_material(float building_seed) {
+    float seed = mod(building_seed, 1000) + 1;
+    float base = 0.1 + mod(seed / 100, 0.2);
+    vec3 rgb = vec3(
+        pow(base, 1 + 0.05*sin(seed)),
+        pow(base, 1 + 0.05*sin(seed/1e2)),
+        pow(base, 1 + 0.05*sin(seed/1e4)));
+    return ma(0.1, 0.9, 0, 10, 0, rgb);
+}
+
 void closest_material(inout float dist, inout ma mat, float new_dist, ma new_mat) {
     if (new_dist < dist) {
         dist = new_dist;
@@ -94,7 +104,7 @@ float ground(vec3 p) {
 
 void skyscraper(vec3 p, inout float dist, inout ma mat, vec3 dimensions, float building_seed) {
     float window_modulo = 2;
-    closest_material(dist, mat, skyscraper_exterior(p, dimensions, window_modulo), ma(0.1, 0.9, 0, 10, 0, vec3(0.1)));
+    closest_material(dist, mat, skyscraper_exterior(p, dimensions, window_modulo), building_material(building_seed));
     closest_material(dist, mat, skyscraper_interior(p, dimensions - vec3(0.1)), window_material(p, window_modulo, building_seed));
 }
 
