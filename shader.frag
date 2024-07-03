@@ -133,9 +133,10 @@ void repeated_skyscrapers(vec3 p, inout float dist, inout ma mat, float base_see
     float divz = floor((p.z - 0.5 * building_modulo) / building_modulo);
     float building_seed = base_seed + round(9949 * (divx + 9967 * divz));
     building_seed += round(9949 * (divz + 9967 * divx));
+    float height_adjustment = 200 / (1 + pow(abs(divx), 1.2));
     p.x = mod(p.x - building_modulo * 0.5, building_modulo) - building_modulo * 0.5;
     p.z = mod(p.z - building_modulo * 0.5, building_modulo) - building_modulo * 0.5;
-    float height = round_odd(150 + mod(building_seed, 50));
+    float height = round_odd(50 + height_adjustment + mod(abs(building_seed), 19));
     float size_seed = round(building_seed / 50);
     float width = round_odd(10 + mod(size_seed, 25));
     size_seed = round(size_seed / 25);
