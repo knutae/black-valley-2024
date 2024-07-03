@@ -23,10 +23,8 @@ struct ma {
 };
 
 float DRAW_DISTANCE = 5000.0;
-
-float horizontal_plane(vec3 p, float height) {
-    return p.y - height;
-}
+float HALF_PI = acos(0);
+float building_modulo = 200;
 
 float origin_box(vec3 p, vec3 dimensions, float corner_radius) {
     vec3 a = abs(p);
@@ -99,7 +97,20 @@ void closest_material(inout float dist, inout ma mat, float new_dist, ma new_mat
 }
 
 float ground(vec3 p) {
-    return horizontal_plane(p, -1);
+    float cliff = max(
+        p.y + 1,
+        p.z + building_modulo / 4);
+    return cliff;
+}
+
+mat2 rotate(float degrees) {
+    float a = degrees * HALF_PI / 180;
+    return mat2(cos(a), -sin(a), sin(a), cos(a));
+}
+
+float sea(vec3 p) {
+    p.xz *= rotate(-20);
+    return p.y + 10 + 0.005 * sin(p.z * 1.25);
 }
 
 void skyscraper(vec3 p, inout float dist, inout ma mat, vec3 dimensions, float building_seed) {
@@ -113,7 +124,7 @@ float round_odd(float x) {
     return x + 1 - mod(x, 2);
 }
 
-void repeated_skyscrapers(vec3 p, inout float dist, inout ma mat, float building_modulo, float base_seed) {
+void repeated_skyscrapers(vec3 p, inout float dist, inout ma mat, float base_seed) {
     float divx = floor((p.x - 0.5 * building_modulo) / building_modulo);
     float divz = floor((p.z - 0.5 * building_modulo) / building_modulo);
     float building_seed = base_seed + round(9949 * (divx + 9967 * divz));
@@ -135,19 +146,24 @@ float pseudo_random(inout float seed) {
 }
 
 void repeated_random_buildings(vec3 p, inout float dist, inout ma mat) {
-    float building_modulo = 200;
     float offset = building_modulo/2;
     float seed = 1337;
-    repeated_skyscrapers(p, dist, mat, building_modulo, pseudo_random(seed));
-    repeated_skyscrapers(p + vec3(offset,0,0), dist, mat, building_modulo, pseudo_random(seed));
-    repeated_skyscrapers(p + vec3(0,0,offset), dist, mat, building_modulo, pseudo_random(seed));
-    repeated_skyscrapers(p + vec3(offset,0,offset), dist, mat, building_modulo, pseudo_random(seed));
+    repeated_skyscrapers(p, dist, mat, pseudo_random(seed));
+    repeated_skyscrapers(p + vec3(offset,0,0), dist, mat, pseudo_random(seed));
+    repeated_skyscrapers(p + vec3(0,0,offset), dist, mat, pseudo_random(seed));
+    repeated_skyscrapers(p + vec3(offset,0,offset), dist, mat, pseudo_random(seed));
+}
+
+void city(vec3 p, inout float dist, inout ma mat) {
+    repeated_random_buildings(p, dist, mat);
+    dist = max(dist, p.z + building_modulo / 4);
 }
 
 float scene(vec3 p, out ma mat) {
     float dist = ground(p);
     mat = ma(0.1, 0.9, 0, 10, 0.0, vec3(0.8));
-    repeated_random_buildings(p, dist, mat);
+    city(p, dist, mat);
+    closest_material(dist, mat, sea(p), ma(0.1, 0.9, 0, 10, 0.7, vec3(0.1, 0.1, 0.3)));
     return dist;
 }
 
