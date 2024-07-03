@@ -217,10 +217,17 @@ float soft_shadow(vec3 p, vec3 light_direction, float sharpness) {
     return res;
 }
 
-const vec3 background_color = vec3(0.3, 0.2, 0.15);
+vec3 background_color(vec3 direction) {
+    float y = direction.y;
+    float x = direction.x;
+    return vec3(
+        0.5 - 0.5 * y + 0.2 * cos(x * 3),
+        0.3 - 0.2 * y,
+        0.15 + 0.6 * y);
+}
 
-vec3 apply_fog(vec3 color, float total_distance) {
-    return mix(color, background_color, 1.0 - exp(-0.0003 * total_distance));
+vec3 apply_fog(vec3 color, float total_distance, vec3 direction) {
+    return mix(color, background_color(direction), 1.0 - exp(-0.0003 * total_distance));
 }
 
 vec3 phong_lighting(vec3 p, ma mat, vec3 ray_direction) {
@@ -239,13 +246,13 @@ vec3 apply_reflections(vec3 color, ma mat, vec3 p, vec3 direction) {
         if (reflection <= 0.01) {
             break;
         }
-        vec3 reflection_color = background_color;
         direction = ray_reflection(direction, estimate_normal(p));
+        vec3 reflection_color = background_color(direction);
         vec3 start_pos = p;
         p += 0.05 * direction;
         if (ray_march(p, direction, mat)) {
             reflection_color = phong_lighting(p, mat, direction);
-            reflection_color = apply_fog(reflection_color, length(p - start_pos));
+            reflection_color = apply_fog(reflection_color, length(p - start_pos), direction);
             color = mix(color, reflection_color, reflection);
             reflection *= mat.R;
         } else {
@@ -266,12 +273,12 @@ vec3 render(float u, float v) {
     vec3 start_pos = eye_position + forward * focal_length + right * u + up * v;
     vec3 direction = normalize(start_pos - eye_position);
     vec3 p = start_pos;
-    vec3 color = background_color;
+    vec3 color = background_color(direction);
     ma mat;
     if (ray_march(p, direction, mat)) {
         color = phong_lighting(p, mat, direction);
         color = apply_reflections(color, mat, p, direction);
-        color = apply_fog(color, length(p - start_pos));
+        color = apply_fog(color, length(p - start_pos), direction);
     }
     return color;
 }
