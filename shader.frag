@@ -227,12 +227,12 @@ vec3 background_color(vec3 direction) {
     float y = direction.y;
     float x = direction.x;
     vec3 sky = vec3(
-        0.5 - 0.5 * y + 0.2 * cos(x * 3),
-        0.3 - 0.2 * y,
-        0.15 + 0.6 * y);
+        0.1 - 0.3 * y + 0.2 * cos(x * 3),
+        0.1 - 0.1 * y,
+        0.05 + 0.6 * y);
     float sun_dist = sqrt(pow(x, 2) + pow(y - 0.05, 2));
     if (sun_dist < 0.25) {
-        sky = mix(sky, vec3(1, 1, 0.5), max(y / 0.2, 0));
+        sky = mix(sky, vec3(0.8, 0.8, 0.5), max(y / 0.2, 0));
     }
     return sky;
 }
