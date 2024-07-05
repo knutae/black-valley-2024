@@ -70,9 +70,9 @@ ma window_material(vec3 p, float modulo, float building_seed) {
     float ambience = pow(a, ambience_exponent);
     // maybe use some color temperature formula for the tint? keep it simple for now
     vec3 tint = vec3(
-        pow(0.9, 1 + sin(building_seed)),
-        pow(0.9, 1 + sin(building_seed/1e2)),
-        pow(0.6, 1 + sin(building_seed/1e4)));
+        pow(0.6, 2 + 2*sin(building_seed)),
+        pow(0.6, 2 + 2*sin(building_seed/1e2)),
+        pow(0.6, 2 + 2*sin(building_seed/1e4)));
     vec3 rgb = vec3(
         pow(tint.r, 1 + sin(seed)),
         pow(tint.g, 1 + sin(seed*2)),
