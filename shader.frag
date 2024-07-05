@@ -243,8 +243,8 @@ vec3 apply_fog(vec3 color, float total_distance, vec3 direction) {
 
 vec3 phong_lighting(vec3 p, ma mat, vec3 ray_direction) {
     vec3 normal = estimate_normal(p);
-    vec3 light_direction = normalize(vec3(0, -5, 10));
-    float shadow = soft_shadow(p, -light_direction, 7.0);
+    vec3 light_direction = normalize(vec3(0, -2, 10));
+    float shadow = soft_shadow(p, -light_direction, 40.0);
     float diffuse = max(0.0, mat.D * dot(normal, -light_direction)) * shadow;
     vec3 reflection = ray_reflection(ray_direction, normal);
     float specular = pow(max(0.0, mat.P * dot(reflection, -light_direction)), mat.S) * shadow;
