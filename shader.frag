@@ -333,7 +333,8 @@ void main() {
 #if defined(DEBUG)
     F = render_long_exposure(u, v, 4, 4);
 #else
-    F = render_aa(u, v, 4, 4);
+    // shader minifier bug: make sure total time is a float literal to avoid integer division
+    F = render_aa(u, v, 4.0, 4);
 #endif
     // vignette
     //float edge = abs(C.x - 1) + abs(C.y - 1);
