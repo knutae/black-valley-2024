@@ -87,7 +87,7 @@ ma building_material(vec3 p, float building_seed) {
         pow(base, 1 + 0.05*sin(seed)),
         pow(base, 1 + 0.05*sin(seed/1e2)),
         pow(base, 1 + 0.05*sin(seed/1e4)));
-    float ambience = 0.5 / (1 + max((p.y - 80) / 50, 0));
+    float ambience = 0.8 / (1 + max((p.y / 30) / 5, 0));
     return ma(ambience, 1 - ambience, 0, 10, 0, rgb);
 }
 
