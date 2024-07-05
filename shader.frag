@@ -49,7 +49,7 @@ float skyscraper_exterior(vec3 p, vec3 dimensions, float window_modulo) {
     return
         max(
             origin_box(p, dimensions, 0.1),
-            -skyscraper_windows(p, max_floors, vec2(0.8, 0.7), window_modulo));
+            -skyscraper_windows(p, max_floors, vec2(0.9, 0.8), window_modulo));
 }
 
 float skyscraper_interior(vec3 p, vec3 dimensions) {
