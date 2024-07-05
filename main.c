@@ -202,7 +202,11 @@ int main() {
   gtk_gl_area_set_auto_render(GTK_GL_AREA(area), FALSE);
 
   gtk_container_add(GTK_CONTAINER(window), area);
+#if defined(DEBUG)
+  gtk_window_set_default_size(GTK_WINDOW(window), 1280, 720);
+#else
   gtk_window_fullscreen(GTK_WINDOW(window));
+#endif
 
   g_signal_connect (area, "realize", G_CALLBACK (realize), NULL);
   g_signal_connect (area, "render", G_CALLBACK (render), NULL);
