@@ -65,7 +65,7 @@ ma window_material(vec3 p, float modulo, float building_seed) {
     seed += round(9949 * (divz + 9967 * (divy + 9973 * divx)));
     // higher exponents makes windows darker
     float a = 0.5 + 0.5 * sin(mod(seed, 1000));
-    float ambience_exponent = 5 + abs(mod(building_seed, 10));
+    float ambience_exponent = 0.1 + abs(mod(building_seed, 9.5));
     ambience_exponent /= abs(mod(abs(divy * (9967 + divy * 9973)), 3)); // brighten some floors
     float ambience = pow(a, ambience_exponent);
     // maybe use some color temperature formula for the tint? keep it simple for now
