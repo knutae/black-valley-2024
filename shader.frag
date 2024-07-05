@@ -230,10 +230,6 @@ vec3 background_color(vec3 direction) {
         0.1 - 0.3 * y + 0.2 * cos(x * 3),
         0.1 - 0.1 * y,
         0.05 + 0.6 * y);
-    float sun_dist = sqrt(pow(x, 2) + pow(y - 0.05, 2));
-    if (sun_dist < 0.25) {
-        sky = mix(sky, vec3(0.8, 0.8, 0.5), max(y / 0.2, 0));
-    }
     return sky;
 }
 
@@ -275,8 +271,8 @@ vec3 apply_reflections(vec3 color, ma mat, vec3 p, vec3 direction) {
 }
 
 vec3 render(float u, float v) {
-    vec3 eye_position = vec3(50, 150, 1000);
-    vec3 forward = normalize(vec3(0, 50, -3) - eye_position);
+    vec3 eye_position = vec3(20, 2, 700);
+    vec3 forward = normalize(vec3(0, 2, -3) - eye_position);
     vec3 up = vec3(0.0, 1.0, 0.0);
     vec3 right = normalize(cross(up, forward));
     up = cross(-right, forward);
