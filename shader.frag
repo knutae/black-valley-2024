@@ -112,10 +112,11 @@ mat2 rotate(float degrees) {
 
 float sea(vec3 p) {
     p.xz *= rotate(-20);
-    float wave1 = 0.04 * sin((p.xz * rotate(-20)).y / 4 + 3*time);
-    float wave2 = 0.01 * sin((p.xz * rotate(10)).y + 2*time);
-    float wave3 = 0.003 * sin((p.xz * rotate(-60)).y + 5*time);
-    return p.y + 10 + wave1 + wave2 + wave3;
+    float wave1 = 0.2 * sin((p.xz * rotate(-20)).y / 4 + 3.1*time);
+    float wave2 = 0.15 * sin((p.xz * rotate(10)).y / 3.9 + 2.1*time);
+    float wave3 = 0.003 * sin((p.xz * rotate(-70)).y / 0.4 + 5*time);
+    float wave4 = 0.002 * sin((p.xz * rotate(80)).y / 0.3 + 3*time);
+    return p.y + 10 + wave1 + wave2 + wave3 + wave4;
 }
 
 void skyscraper(vec3 p, inout float dist, inout ma mat, vec3 dimensions, float building_seed) {
