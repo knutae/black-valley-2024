@@ -313,7 +313,7 @@ void main() {
     vec3 F;
 #endif
     // shader minifier bug: make sure total time is a float literal to avoid integer division
-    F = render_long_exposure(u, v, 4.0, 4);
+    F = render_long_exposure(u, v, 7.0, 16);
     // vignette
     //float edge = abs(C.x - 1) + abs(C.y - 1);
     //F = mix(F, vec3(0), min(1, max(0, edge*0.3 - 0.2)));
