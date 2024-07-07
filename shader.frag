@@ -166,10 +166,57 @@ void city(vec3 p, inout float dist, inout ma mat) {
     dist = max(dist, p.z + building_modulo / 4);
 }
 
+float FERRIS_WHEEL_RADIUS = 100;
+
+float wheel(vec3 p) {
+    vec2 q = vec2(length(p.xy) - FERRIS_WHEEL_RADIUS, p.z);
+    return length(q) - 1;
+}
+
+float wheel_spike(vec3 p) {
+    p.x -= clamp(p.x, 0, FERRIS_WHEEL_RADIUS);
+    return length(p) - 0.5;
+}
+
+float wheel_spikes(vec3 p) {
+    // polar coordinates
+    float polar_r = length(p.xy);
+    float polar_a = atan(p.y, p.x);
+    float angle = 45;
+    float modulo = angle * HALF_PI / 180; // to radians
+    // repeated wheel spike in polar coordinates
+    polar_a = mod(polar_a - 0.5 * modulo, modulo) - 0.5 * modulo;
+    vec3 q = vec3(polar_r * cos(polar_a), polar_r * sin(polar_a), p.z);
+    return wheel_spike(q);
+}
+
+float wheel_dist(vec3 p) {
+    p.xy *= rotate(5 * time);
+    return min(wheel(p), wheel_spikes(p));
+}
+
+vec3 wheel_color(vec3 p) {
+    float polar_r = length(p.xy);
+    float polar_a = atan(p.y, p.x);
+    polar_r = FERRIS_WHEEL_RADIUS - polar_r;
+    polar_r /= 2;
+    float r = 0.6 + 0.4 * sin(polar_r + HALF_PI);
+    float g = 0.6 + 0.4 * sin(polar_r * 2 - HALF_PI);
+    float b = 0.6 + 0.4 * sin(polar_r / 2);
+    return vec3(r, g, b);
+}
+
+void ferris_wheel(vec3 p, inout float dist, inout ma mat) {
+    p.x += 300;
+    p.y -= FERRIS_WHEEL_RADIUS + 10;
+    closest_material(dist, mat, wheel_dist(p), ma(0.9, 0.1, 0, 10, 0, wheel_color(p)));
+}
+
 float scene(vec3 p, out ma mat) {
     float dist = ground(p);
     mat = ma(0.1, 0.9, 0, 10, 0.0, vec3(0.8));
     city(p, dist, mat);
+    ferris_wheel(p, dist, mat);
     closest_material(dist, mat, sea(p), ma(0.1, 0.9, 0, 10, 0.7, vec3(0.1, 0.1, 0.3)));
     return dist;
 }
@@ -274,6 +321,8 @@ vec3 apply_reflections(vec3 color, ma mat, vec3 p, vec3 direction) {
 vec3 render(float u, float v) {
     vec3 eye_position = vec3(20, 2, 700);
     vec3 forward = normalize(vec3(0, 2, -3) - eye_position);
+    //vec3 eye_position = vec3(-250, 2, 350);
+    //vec3 forward = normalize(vec3(-300, 6, -3) - eye_position);
     vec3 up = vec3(0.0, 1.0, 0.0);
     vec3 right = normalize(cross(up, forward));
     up = cross(-right, forward);
