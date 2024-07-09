@@ -290,7 +290,7 @@ vec3 ray_reflection(vec3 direction, vec3 normal) {
     return 2.0 * dot(-direction, normal) * normal + direction;
 }
 
-float soft_shadow(vec3 p, vec3 light_direction, float sharpness) {
+float soft_shadow(vec3 p, vec3 light_direction, float max_distance, float sharpness) {
     ma m;
     p += light_direction * 0.1;
     float total_dist = 0.1;
@@ -302,7 +302,7 @@ float soft_shadow(vec3 p, vec3 light_direction, float sharpness) {
         }
         total_dist += dist;
         res = min(res, sharpness * dist / total_dist);
-        if (total_dist > DRAW_DISTANCE) {
+        if (total_dist > max_distance) {
             break;
         }
         p += light_direction * dist;
@@ -332,7 +332,7 @@ vec3 phong_lighting(vec3 p, ma mat, vec3 ray_direction) {
     float light_distance = length(p - light_pos);
     vec3 light_color = vec3(1, 1, 0.5);
     float light_intensity = exp(-0.004 * light_distance);
-    float shadow = soft_shadow(p, -light_direction, 40.0);
+    float shadow = soft_shadow(p, -light_direction, light_distance, 40.0);
     float diffuse = max(0.0, mat.D * dot(normal, -light_direction)) * shadow * light_intensity;
     vec3 reflection = ray_reflection(ray_direction, normal);
     float specular = pow(max(0.0, mat.P * dot(reflection, -light_direction)), mat.S) * shadow;
