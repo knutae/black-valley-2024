@@ -164,6 +164,19 @@ void repeated_random_buildings(vec3 p, inout float dist, inout ma mat) {
     repeated_skyscrapers(p + vec3(offset,0,offset), dist, mat, pseudo_random(seed), -1);
 }
 
+float waterfront_stairs(vec3 p) {
+    //p.z += 1;
+    p.z += building_modulo / 4 + 9;
+    p.y += 23.5;
+    float dist = length(max(abs(p.yz) - vec2(22, 20), 0.0)) - 0.5;
+    for (int i = 0; i < 3; i++) {
+        p.y += 2.5;
+        p.z -= 20;
+        dist = min(dist, length(max(abs(p.yz) - vec2(22, 20), 0.0)) - 0.5);
+    }
+    return dist;
+}
+
 void city(vec3 p, inout float dist, inout ma mat) {
     repeated_random_buildings(p, dist, mat);
 }
@@ -247,6 +260,7 @@ float scene(vec3 p, out ma mat) {
     ferris_wheel(p, dist, mat);
     street_lights(p, dist, mat);
     closest_material(dist, mat, sea(p), ma(vec3(0.1), 0.9, 0, 10, 0.7, vec3(0.1, 0.1, 0.3)));
+    closest_material(dist, mat, waterfront_stairs(p), ma(vec3(0.1), 0.9, 0, 10, 0, vec3(0.7)));
     return dist;
 }
 
@@ -254,6 +268,7 @@ float shadow_scene(vec3 p, out ma mat) {
     float dist = ground(p);
     mat = ma(vec3(0.1), 0.9, 0, 10, 0.0, vec3(0.8));
     city(p, dist, mat);
+    closest_material(dist, mat, waterfront_stairs(p), ma(vec3(0.1), 0.9, 0, 10, 0, vec3(0.7)));
     //ferris_wheel(p, dist, mat);
     //street_lights(p, dist, mat);
     //closest_material(dist, mat, sea(p), ma(0.1, 0.9, 0, 10, 0.7, vec3(0.1, 0.1, 0.3)));
@@ -365,8 +380,8 @@ vec3 apply_reflections(vec3 color, ma mat, vec3 p, vec3 direction) {
 vec3 render(float u, float v) {
     vec3 eye_position = vec3(20, 2, 700);
     vec3 forward = normalize(vec3(0, 2, -3) - eye_position);
-    //vec3 eye_position = vec3(-250, 20, 50);
-    //vec3 forward = normalize(vec3(-200, 6, -3) - eye_position);
+    //vec3 eye_position = vec3(-150, 20, 150);
+    //vec3 forward = normalize(vec3(-350, 6, -3) - eye_position);
     vec3 up = vec3(0.0, 1.0, 0.0);
     vec3 right = normalize(cross(up, forward));
     up = cross(-right, forward);
