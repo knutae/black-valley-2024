@@ -109,16 +109,16 @@ float ground(vec3 p) {
 }
 
 mat2 rotate(float degrees) {
-    float a = degrees * HALF_PI / 180;
+    float a = degrees * HALF_PI / 90;
     return mat2(cos(a), -sin(a), sin(a), cos(a));
 }
 
 float sea(vec3 p) {
-    p.xz *= rotate(-20);
-    float wave1 = 0.2 * sin((p.xz * rotate(-20)).y / 4 + 3.1*time);
-    float wave2 = 0.15 * sin((p.xz * rotate(10)).y / 3.9 + 2.1*time);
-    float wave3 = 0.003 * sin((p.xz * rotate(-70)).y / 0.4 + 5*time);
-    float wave4 = 0.002 * sin((p.xz * rotate(80)).y / 0.3 + 3*time);
+    p.xz *= rotate(-10);
+    float wave1 = 0.2 * sin((p.xz * rotate(-10)).y / 4 + 3.1*time);
+    float wave2 = 0.15 * sin((p.xz * rotate(5)).y / 3.9 + 2.1*time);
+    float wave3 = 0.003 * sin((p.xz * rotate(-35)).y / 0.4 + 5*time);
+    float wave4 = 0.002 * sin((p.xz * rotate(40)).y / 0.3 + 3*time);
     return p.y + 10 + wave1 + wave2 + wave3 + wave4;
 }
 
@@ -206,7 +206,7 @@ float wheel_spikes(vec3 p) {
 }
 
 float wheel_dist(vec3 p) {
-    p.xy *= rotate(5 * time);
+    p.xy *= rotate(2.5 * time);
     return min(wheel(p), wheel_spikes(p));
 }
 
