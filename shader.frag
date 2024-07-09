@@ -14,7 +14,7 @@ layout (location=0) uniform vec2 SIZE;
 // Shader minifier does not (currently) minimize structs, so use short names.
 // Using a one-letter name for the struct itself seems to trigger a bug, so use two.
 struct ma {
-    float A; // ambient
+    vec3 A; // ambient
     float D; // diffuse
     float P; // specular
     float S; // shininess
@@ -49,11 +49,20 @@ float skyscraper_exterior(vec3 p, vec3 dimensions, float window_modulo) {
     return
         max(
             origin_box(p, dimensions, 0.1),
-            -skyscraper_windows(p, max_floors, vec2(0.9, 0.8), window_modulo));
+            -skyscraper_windows(p, max_floors, vec2(0.7, 0.5), window_modulo));
 }
 
 float skyscraper_interior(vec3 p, vec3 dimensions) {
     return origin_box(p, dimensions, 0.1);
+}
+
+vec3 building_rgb(vec3 p, float building_seed) {
+    float seed = mod(building_seed, 1000) + 1;
+    float base = 0.1 + mod(seed / 100, 0.2);
+    return vec3(
+        pow(base, 1 + 0.05*sin(seed)),
+        pow(base, 1 + 0.05*sin(seed/1e2)),
+        pow(base, 1 + 0.05*sin(seed/1e4)));
 }
 
 ma window_material(vec3 p, float modulo, float building_seed) {
@@ -77,18 +86,12 @@ ma window_material(vec3 p, float modulo, float building_seed) {
         pow(tint.r, 1 + sin(seed)),
         pow(tint.g, 1 + sin(seed*2)),
         pow(tint.b, 1 + sin(seed*3)));
-    return ma(ambience, 0.9, 0, 10, 0, rgb);
+    return ma(ambience * rgb, 0.9, 0, 10, 0, building_rgb(p, building_seed));
 }
 
 ma building_material(vec3 p, float building_seed) {
-    float seed = mod(building_seed, 1000) + 1;
-    float base = 0.1 + mod(seed / 100, 0.2);
-    vec3 rgb = vec3(
-        pow(base, 1 + 0.05*sin(seed)),
-        pow(base, 1 + 0.05*sin(seed/1e2)),
-        pow(base, 1 + 0.05*sin(seed/1e4)));
-    float ambience = 0.8 / (1 + max((p.y / 30) / 5, 0));
-    return ma(ambience, 1 - ambience, 0, 10, 0, rgb);
+    vec3 rgb = building_rgb(p, building_seed);
+    return ma(0.1 * rgb, 0.9, 0, 10, 0, rgb);
 }
 
 void closest_material(inout float dist, inout ma mat, float new_dist, ma new_mat) {
@@ -209,7 +212,8 @@ vec3 wheel_color(vec3 p) {
 void ferris_wheel(vec3 p, inout float dist, inout ma mat) {
     p.x += 300;
     p.y -= FERRIS_WHEEL_RADIUS + 10;
-    closest_material(dist, mat, wheel_dist(p), ma(0.9, 0.1, 0, 10, 0, wheel_color(p)));
+    vec3 col = wheel_color(p);
+    closest_material(dist, mat, wheel_dist(p), ma(0.9 * col, 0.1, 0, 10, 0, col));
 }
 
 float light_pole(vec3 p) {
@@ -232,23 +236,24 @@ void street_lights(vec3 p, inout float dist, inout ma mat) {
     p.z += building_modulo / 4 + 5;
     p.y -= 10;
     float light = length(p) - 2;
-    closest_material(dist, mat, light, ma(0.9, 0.1, 0, 10, 0, vec3(1, 1, 0.5)));
-    closest_material(dist, mat, light_pole(p), ma(0.1, 0.9, 0, 10, 0, vec3(0.2)));
+    vec3 light_color = vec3(1, 1, 0.5);
+    closest_material(dist, mat, light, ma(0.9 * light_color, 0.1, 0, 10, 0, light_color));
+    closest_material(dist, mat, light_pole(p), ma(vec3(0.1), 0.9, 0, 10, 0, vec3(0.2)));
 }
 
 float scene(vec3 p, out ma mat) {
     float dist = ground(p);
-    mat = ma(0.1, 0.9, 0, 10, 0.0, vec3(1.0));
+    mat = ma(vec3(0.1), 0.9, 0, 10, 0.0, vec3(1.0));
     city(p, dist, mat);
-    //ferris_wheel(p, dist, mat);
+    ferris_wheel(p, dist, mat);
     street_lights(p, dist, mat);
-    closest_material(dist, mat, sea(p), ma(0.1, 0.9, 0, 10, 0.7, vec3(0.1, 0.1, 0.3)));
+    closest_material(dist, mat, sea(p), ma(vec3(0.1), 0.9, 0, 10, 0.7, vec3(0.1, 0.1, 0.3)));
     return dist;
 }
 
 float shadow_scene(vec3 p, out ma mat) {
     float dist = ground(p);
-    mat = ma(0.1, 0.9, 0, 10, 0.0, vec3(0.8));
+    mat = ma(vec3(0.1), 0.9, 0, 10, 0.0, vec3(0.8));
     city(p, dist, mat);
     //ferris_wheel(p, dist, mat);
     //street_lights(p, dist, mat);
@@ -332,7 +337,7 @@ vec3 phong_lighting(vec3 p, ma mat, vec3 ray_direction) {
     float diffuse = max(0.0, mat.D * dot(normal, -light_direction)) * shadow * light_intensity;
     vec3 reflection = ray_reflection(ray_direction, normal);
     float specular = pow(max(0.0, mat.P * dot(reflection, -light_direction)), mat.S) * shadow;
-    return min((mat.C * diffuse * light_color) + (mat.C * mat.A) + vec3(specular), vec3(1.0));
+    return min(mat.A + (mat.C * diffuse * light_color) + vec3(specular), vec3(1.0));
 }
 
 vec3 apply_reflections(vec3 color, ma mat, vec3 p, vec3 direction) {
