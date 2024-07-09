@@ -253,17 +253,7 @@ void street_lights(vec3 p, inout float dist, inout ma mat) {
     closest_material(dist, mat, light_pole(p), ma(vec3(0.1), 0.9, 0, 10, 0, vec3(0.2)));
 }
 
-float scene(vec3 p, out ma mat) {
-    float dist = ground(p);
-    mat = ma(vec3(0.1), 0.9, 0, 10, 0.0, vec3(1.0));
-    city(p, dist, mat);
-    ferris_wheel(p, dist, mat);
-    street_lights(p, dist, mat);
-    closest_material(dist, mat, sea(p), ma(vec3(0.1), 0.9, 0, 10, 0.7, vec3(0.1, 0.1, 0.3)));
-    closest_material(dist, mat, waterfront_stairs(p), ma(vec3(0.1), 0.9, 0, 10, 0, vec3(0.7)));
-    return dist;
-}
-
+// Simplified scene for shadow calculations, should not contain light source geometries.
 float shadow_scene(vec3 p, out ma mat) {
     float dist = ground(p);
     mat = ma(vec3(0.1), 0.9, 0, 10, 0.0, vec3(0.8));
@@ -272,6 +262,14 @@ float shadow_scene(vec3 p, out ma mat) {
     //ferris_wheel(p, dist, mat);
     //street_lights(p, dist, mat);
     //closest_material(dist, mat, sea(p), ma(0.1, 0.9, 0, 10, 0.7, vec3(0.1, 0.1, 0.3)));
+    return dist;
+}
+
+float scene(vec3 p, out ma mat) {
+    float dist = shadow_scene(p, mat);
+    ferris_wheel(p, dist, mat);
+    street_lights(p, dist, mat);
+    closest_material(dist, mat, sea(p), ma(vec3(0.1), 0.9, 0, 10, 0.7, vec3(0.1, 0.1, 0.3)));
     return dist;
 }
 
