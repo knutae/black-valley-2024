@@ -77,7 +77,7 @@ ma window_material(vec3 p, float modulo, float building_seed) {
         pow(tint.r, 1 + sin(seed)),
         pow(tint.g, 1 + sin(seed*2)),
         pow(tint.b, 1 + sin(seed*3)));
-    return ma(ambience, 0.1, 0, 10, 0, rgb);
+    return ma(ambience, 0.9, 0, 10, 0, rgb);
 }
 
 ma building_material(vec3 p, float building_seed) {
@@ -163,7 +163,7 @@ void repeated_random_buildings(vec3 p, inout float dist, inout ma mat) {
 
 void city(vec3 p, inout float dist, inout ma mat) {
     repeated_random_buildings(p, dist, mat);
-    dist = max(dist, p.z + building_modulo / 4);
+    dist = max(dist, p.z + building_modulo / 4 + 4);
 }
 
 float FERRIS_WHEEL_RADIUS = 100;
@@ -212,12 +212,47 @@ void ferris_wheel(vec3 p, inout float dist, inout ma mat) {
     closest_material(dist, mat, wheel_dist(p), ma(0.9, 0.1, 0, 10, 0, wheel_color(p)));
 }
 
+float light_pole(vec3 p) {
+    p.y += 10;
+    p.y -= clamp(p.y, 0, 12);
+    return length(p) - 0.5;
+}
+
+float street_light_modulo = 20;
+
+vec3 closest_street_light_pos(vec3 p) {
+    return vec3(
+        round(p.x / street_light_modulo) * street_light_modulo,
+        10,
+        -building_modulo / 4 - 5);
+}
+
+void street_lights(vec3 p, inout float dist, inout ma mat) {
+    p.x = mod(p.x - 0.5 * street_light_modulo, street_light_modulo) - 0.5 * street_light_modulo;
+    p.z += building_modulo / 4 + 5;
+    p.y -= 10;
+    float light = length(p) - 2;
+    closest_material(dist, mat, light, ma(0.9, 0.1, 0, 10, 0, vec3(1, 1, 0.5)));
+    closest_material(dist, mat, light_pole(p), ma(0.1, 0.9, 0, 10, 0, vec3(0.2)));
+}
+
 float scene(vec3 p, out ma mat) {
+    float dist = ground(p);
+    mat = ma(0.1, 0.9, 0, 10, 0.0, vec3(1.0));
+    city(p, dist, mat);
+    //ferris_wheel(p, dist, mat);
+    street_lights(p, dist, mat);
+    closest_material(dist, mat, sea(p), ma(0.1, 0.9, 0, 10, 0.7, vec3(0.1, 0.1, 0.3)));
+    return dist;
+}
+
+float shadow_scene(vec3 p, out ma mat) {
     float dist = ground(p);
     mat = ma(0.1, 0.9, 0, 10, 0.0, vec3(0.8));
     city(p, dist, mat);
-    ferris_wheel(p, dist, mat);
-    closest_material(dist, mat, sea(p), ma(0.1, 0.9, 0, 10, 0.7, vec3(0.1, 0.1, 0.3)));
+    //ferris_wheel(p, dist, mat);
+    //street_lights(p, dist, mat);
+    //closest_material(dist, mat, sea(p), ma(0.1, 0.9, 0, 10, 0.7, vec3(0.1, 0.1, 0.3)));
     return dist;
 }
 
@@ -257,7 +292,7 @@ float soft_shadow(vec3 p, vec3 light_direction, float sharpness) {
     float total_dist = 0.1;
     float res = 1.0;
     for (int i = 0; i < 100; i++) {
-        float dist = scene(p, m);
+        float dist = shadow_scene(p, m);
         if (dist < 0.01) {
             return 0.0;
         }
@@ -287,12 +322,17 @@ vec3 apply_fog(vec3 color, float total_distance, vec3 direction) {
 
 vec3 phong_lighting(vec3 p, ma mat, vec3 ray_direction) {
     vec3 normal = estimate_normal(p);
-    vec3 light_direction = normalize(vec3(0, -2, 10));
+    // could combine multiple street lights, but one is probably good enough
+    vec3 light_pos = closest_street_light_pos(p);
+    vec3 light_direction = normalize(p - light_pos);
+    float light_distance = length(p - light_pos);
+    vec3 light_color = vec3(1, 1, 0.5);
+    float light_intensity = exp(-0.004 * light_distance);
     float shadow = soft_shadow(p, -light_direction, 40.0);
-    float diffuse = max(0.0, mat.D * dot(normal, -light_direction)) * shadow;
+    float diffuse = max(0.0, mat.D * dot(normal, -light_direction)) * shadow * light_intensity;
     vec3 reflection = ray_reflection(ray_direction, normal);
     float specular = pow(max(0.0, mat.P * dot(reflection, -light_direction)), mat.S) * shadow;
-    return min(mat.C * (diffuse + mat.A) + vec3(specular), vec3(1.0));
+    return min((mat.C * diffuse * light_color) + (mat.C * mat.A) + vec3(specular), vec3(1.0));
 }
 
 vec3 apply_reflections(vec3 color, ma mat, vec3 p, vec3 direction) {
@@ -321,8 +361,8 @@ vec3 apply_reflections(vec3 color, ma mat, vec3 p, vec3 direction) {
 vec3 render(float u, float v) {
     vec3 eye_position = vec3(20, 2, 700);
     vec3 forward = normalize(vec3(0, 2, -3) - eye_position);
-    //vec3 eye_position = vec3(-250, 2, 350);
-    //vec3 forward = normalize(vec3(-300, 6, -3) - eye_position);
+    //vec3 eye_position = vec3(-250, 20, 50);
+    //vec3 forward = normalize(vec3(-200, 6, -3) - eye_position);
     vec3 up = vec3(0.0, 1.0, 0.0);
     vec3 right = normalize(cross(up, forward));
     up = cross(-right, forward);
