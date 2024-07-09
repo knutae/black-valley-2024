@@ -133,14 +133,14 @@ float round_odd(float x) {
     return x + 1 - mod(x, 2);
 }
 
-void repeated_skyscrapers(vec3 p, inout float dist, inout ma mat, float base_seed) {
+void repeated_skyscrapers(vec3 p, inout float dist, inout ma mat, float base_seed, float min_zdiv) {
     float divx = floor((p.x - 0.5 * building_modulo) / building_modulo);
-    float divz = floor((p.z - 0.5 * building_modulo) / building_modulo);
+    float divz = min(min_zdiv, floor((p.z - 0.5 * building_modulo) / building_modulo));
     float building_seed = base_seed + round(9949 * (divx + 9967 * divz));
     building_seed += round(9949 * (divz + 9967 * divx));
     float height_adjustment = 200 / (1 + pow(abs(divx), 1.2));
-    p.x = mod(p.x - building_modulo * 0.5, building_modulo) - building_modulo * 0.5;
-    p.z = mod(p.z - building_modulo * 0.5, building_modulo) - building_modulo * 0.5;
+    p.x -= (divx + 1) * building_modulo;
+    p.z -= (divz + 1) * building_modulo;
     float height = round_odd(50 + height_adjustment + mod(abs(building_seed), 19));
     float size_seed = round(building_seed / 50);
     float width = round_odd(10 + mod(size_seed, 25));
@@ -158,15 +158,14 @@ float pseudo_random(inout float seed) {
 void repeated_random_buildings(vec3 p, inout float dist, inout ma mat) {
     float offset = building_modulo/2;
     float seed = 1337;
-    repeated_skyscrapers(p, dist, mat, pseudo_random(seed));
-    repeated_skyscrapers(p + vec3(offset,0,0), dist, mat, pseudo_random(seed));
-    repeated_skyscrapers(p + vec3(0,0,offset), dist, mat, pseudo_random(seed));
-    repeated_skyscrapers(p + vec3(offset,0,offset), dist, mat, pseudo_random(seed));
+    repeated_skyscrapers(p, dist, mat, pseudo_random(seed), -2);
+    repeated_skyscrapers(p + vec3(offset,0,0), dist, mat, pseudo_random(seed), -2);
+    repeated_skyscrapers(p + vec3(0,0,offset), dist, mat, pseudo_random(seed), -1);
+    repeated_skyscrapers(p + vec3(offset,0,offset), dist, mat, pseudo_random(seed), -1);
 }
 
 void city(vec3 p, inout float dist, inout ma mat) {
     repeated_random_buildings(p, dist, mat);
-    dist = max(dist, p.z + building_modulo / 4 + 4);
 }
 
 float FERRIS_WHEEL_RADIUS = 100;
