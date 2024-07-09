@@ -195,10 +195,11 @@ float wheel_spike(vec3 p) {
 
 float wheel_spikes(vec3 p) {
     // polar coordinates
+    p.xy *= rotate(0.1); // workaround for disappearing vertical spikes
     float polar_r = length(p.xy);
     float polar_a = atan(p.y, p.x);
-    float angle = 45;
-    float modulo = angle * HALF_PI / 180; // to radians
+    float angle = 30;
+    float modulo = angle * HALF_PI / 90; // to radians
     // repeated wheel spike in polar coordinates
     polar_a = mod(polar_a - 0.5 * modulo, modulo) - 0.5 * modulo;
     vec3 q = vec3(polar_r * cos(polar_a), polar_r * sin(polar_a), p.z);
