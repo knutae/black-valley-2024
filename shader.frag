@@ -401,9 +401,14 @@ vec3 render_long_exposure(float u, float v, float total_time, int timesteps) {
     vec3 r_sum = vec3(0);
     vec3 r_max = vec3(0);
     float time_delta = total_time / timesteps;
+    float angle_step = HALF_PI * 4.0 / timesteps;
+    float epsilon = 0.2 / max(SIZE.x, SIZE.y);
     for (int i = 0; i < timesteps; i++) {
         time = i * time_delta;
-        vec3 tmp = render(u, v);
+        // sneak in some antialiasing by adding small epsilons to u/v
+        vec3 tmp = render(
+            u + epsilon * cos(angle_step * i),
+            v + epsilon * sin(angle_step * i));
         r_sum += tmp;
         r_max = max(r_max, tmp);
     }
