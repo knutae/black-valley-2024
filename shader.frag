@@ -266,7 +266,8 @@ void street_lights(vec3 p, inout float dist, inout ma mat) {
 }
 
 float bridge_road(vec3 p) {
-    return origin_box(p, vec3(19, 1, 1000), 0.1);
+    p.x = abs(p.x) - 10;
+    return origin_box(p, vec3(8.2, 1, 1000), 0.2);
 }
 
 float repeated_fence_pattern(vec2 p) {
