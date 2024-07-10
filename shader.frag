@@ -248,10 +248,10 @@ void ferris_wheel(vec3 p, inout float dist, inout ma mat) {
     closest_material(dist, mat, wheel_support(p), ma(0.9 * col, 0.1, 0, 10, 0, col));
 }
 
-float light_pole(vec3 p) {
-    p.y += 10;
-    p.y -= clamp(p.y, 0, 12);
-    return length(p) - 0.5;
+float light_pole(vec3 p, float height, float radius) {
+    p.y += height;
+    p.y -= clamp(p.y, 0, height + 2);
+    return length(p) - radius;
 }
 
 float street_light_modulo = 20;
@@ -270,7 +270,7 @@ void street_lights(vec3 p, inout float dist, inout ma mat) {
     float light = length(p) - 2;
     vec3 light_color = vec3(1, 1, 0.5);
     closest_material(dist, mat, light, ma(0.9 * light_color, 0.1, 0, 10, 0, light_color));
-    closest_material(dist, mat, light_pole(p), ma(vec3(0.1), 0.9, 0, 10, 0, vec3(0.2)));
+    closest_material(dist, mat, light_pole(p, 10, 0.5), ma(vec3(0.1), 0.9, 0, 10, 0, vec3(0.2)));
 }
 
 float bridge_coarseness = 2e-4;
@@ -334,25 +334,26 @@ float bridge_geom(vec3 p) {
 
 float bridge_light_modulo = 30;
 float bridge_light_offset = 8;
+float bridge_light_height = 11;
 float bridge_x_offset = -building_modulo / 4;
 float bridge_y_offset = 30;
 
 vec3 closest_bridge_light_pos(vec3 p, float light_x_offset) {
     return vec3(
         bridge_x_offset + light_x_offset,
-        bridge_y_offset + 10,
+        bridge_y_offset + bridge_light_height,
         round(p.z / bridge_light_modulo) * bridge_light_modulo);
 }
 
 void bridge_street_lights(vec3 p, inout float dist, inout ma mat) {
     p.z = mod(p.z - 0.5 * bridge_light_modulo, bridge_light_modulo) - 0.5 * bridge_light_modulo;
-    p.y -= bridge_y_offset + 10;
+    p.y -= bridge_y_offset + bridge_light_height;
     p.x -= bridge_x_offset;
     p.x = abs(p.x) - bridge_light_offset * 2;
     float light = length(p) - 2;
     vec3 light_color = vec3(0.8, 0.9, 1);
     closest_material(dist, mat, light, ma(0.9 * light_color, 0.1, 0, 10, 0, light_color));
-    closest_material(dist, mat, light_pole(p), ma(vec3(0.1), 0.9, 0, 10, 0, vec3(0.2)));
+    closest_material(dist, mat, light_pole(p, bridge_light_height, 0.5), ma(vec3(0.1), 0.9, 0, 10, 0, vec3(0.2)));
 }
 
 void bridge(vec3 p, inout float dist, inout ma mat) {
