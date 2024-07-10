@@ -344,7 +344,8 @@ void bridge(vec3 p, inout float dist, inout ma mat) {
     p.z -= 500;
     p.x -= bridge_x_offset;
     p.y -= bridge_y_offset;
-    closest_material(dist, mat, bridge_geom(p), ma(vec3(0.1), 0.9, 0, 10, 0, vec3(1)));
+    vec3 bridge_color = vec3(1, 0.8, 0.6);
+    closest_material(dist, mat, bridge_geom(p), ma(bridge_color * 0.1, 0.9, 0, 10, 0, bridge_color));
 }
 
 // Simplified scene for shadow calculations, should not contain light source geometries.
