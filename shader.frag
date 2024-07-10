@@ -382,7 +382,7 @@ float scene(vec3 p, out ma mat) {
     ferris_wheel(p, dist, mat);
     street_lights(p, dist, mat);
     bridge_street_lights(p, dist, mat);
-    closest_material(dist, mat, sea(p), ma(vec3(0.1), 0.9, 0.95, 15, 0.7, vec3(0.1, 0.1, 0.3)));
+    closest_material(dist, mat, sea(p), ma(vec3(0.1), 0.9, 0.94, 15, 0.7, vec3(0.1, 0.1, 0.3)));
     return dist;
 }
 
@@ -452,20 +452,40 @@ vec3 apply_fog(vec3 color, float total_distance, vec3 direction) {
 
 vec3 phong_lighting(vec3 p, ma mat, vec3 ray_direction) {
     vec3 normal = estimate_normal(p);
-    // could combine multiple street lights, but one is probably good enough
     vec3 light_positions[] = {
         vec3(1000, 2000, 1000),
+        closest_street_light_pos(p - vec3(street_light_modulo, 0, 0)),
         closest_street_light_pos(p),
+        closest_street_light_pos(p + vec3(street_light_modulo, 0, 0)),
+        closest_bridge_light_pos(p - vec3(0, 0, -bridge_light_modulo), bridge_light_offset),
         closest_bridge_light_pos(p, bridge_light_offset),
-        closest_bridge_light_pos(p, -bridge_light_offset) };
+        closest_bridge_light_pos(p + vec3(0, 0, -bridge_light_modulo), bridge_light_offset),
+        closest_bridge_light_pos(p - vec3(0, 0, -bridge_light_modulo), -bridge_light_offset),
+        closest_bridge_light_pos(p, -bridge_light_offset),
+        closest_bridge_light_pos(p + vec3(0, 0, -bridge_light_modulo), -bridge_light_offset),
+        };
     vec3 light_colors[] = {
         vec3(0.15),
         vec3(1, 1, 0.5),
+        vec3(1, 1, 0.5),
+        vec3(1, 1, 0.5),
         vec3(0.8, 0.9, 1),
-        vec3(0.8, 0.9, 1)};
-    float light_dropoff[] = { -1e-5, -0.004, -0.02, -0.02 };
+        vec3(0.8, 0.9, 1),
+        vec3(0.8, 0.9, 1),
+        vec3(0.8, 0.9, 1),
+        vec3(0.8, 0.9, 1),
+        vec3(0.8, 0.9, 1),
+        };
+    float street_light_dropoff = -0.01;
+    float bridge_light_dropoff = -0.03;
+    float light_dropoff[] = {
+        -1e-5,
+        street_light_dropoff, street_light_dropoff, street_light_dropoff,
+        bridge_light_dropoff, bridge_light_dropoff, bridge_light_dropoff,
+        bridge_light_dropoff, bridge_light_dropoff, bridge_light_dropoff,
+        };
     vec3 diffuse_and_specular_sum = vec3(0);
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 10; i++) {
         vec3 light_pos = light_positions[i];
         vec3 light_color = light_colors[i];
         vec3 light_direction = normalize(p - light_pos);
