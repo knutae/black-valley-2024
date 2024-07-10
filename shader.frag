@@ -285,7 +285,6 @@ float bridge_fences(vec3 p) {
 }
 
 float bridge_pillars(vec3 p) {
-    p.z -= 500;
     p.x = abs(p.x) - 10;
     p.z = abs(p.z) - 150;
     float dist = origin_box(p, vec3(5, 60, 2), 0.2);
@@ -295,14 +294,31 @@ float bridge_pillars(vec3 p) {
     return dist;
 }
 
+float bridge_wires(vec3 p) {
+    float orig_z = p.z;
+    float modulo = 300;
+    p.x = abs(p.x) - 10;
+    float radius = 220;
+    p.y -= radius + 3;
+    p.z = mod(p.z - 0.5 * modulo, modulo) - 0.5 * modulo;
+    vec2 q = vec2(length(p.yz) - radius, p.x);
+    float dist = length(q) - 1;
+    dist = max(dist, p.y + radius - 60);
+    dist = max(dist, orig_z - modulo);
+    dist = max(dist, -orig_z - modulo);
+    return dist;
+}
+
 float bridge_geom(vec3 p) {
     float dist = bridge_road(p);
     dist = min(dist, bridge_fences(p));
     dist = min(dist, bridge_pillars(p));
+    dist = min(dist, bridge_wires(p));
     return dist;
 }
 
 void bridge(vec3 p, inout float dist, inout ma mat) {
+    p.z -= 500;
     p.x += building_modulo / 4;
     p.y -= 30;
     closest_material(dist, mat, bridge_geom(p), ma(vec3(0.1), 0.9, 0, 10, 0, vec3(1)));
@@ -434,8 +450,8 @@ vec3 apply_reflections(vec3 color, ma mat, vec3 p, vec3 direction) {
 vec3 render(float u, float v) {
     vec3 eye_position = vec3(30, -3, 700);
     vec3 forward = normalize(vec3(-150, 2, -3) - eye_position);
-    //vec3 eye_position = vec3(-150, 20, 150);
-    //vec3 forward = normalize(vec3(-350, 6, -3) - eye_position);
+    //vec3 eye_position = vec3(350, 10, 350);
+    //vec3 forward = normalize(vec3(-550, 6, 300) - eye_position);
     vec3 up = vec3(0.0, 1.0, 0.0);
     vec3 right = normalize(cross(up, forward));
     up = cross(-right, forward);
