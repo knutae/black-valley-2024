@@ -284,9 +284,21 @@ float bridge_fences(vec3 p) {
         -repeated_fence_pattern(p.zy));
 }
 
+float bridge_pillars(vec3 p) {
+    p.z -= 500;
+    p.x = abs(p.x) - 10;
+    p.z = abs(p.z) - 150;
+    float dist = origin_box(p, vec3(5, 60, 2), 0.2);
+    p.x += 5;
+    p.y -= 60;
+    dist = min(dist, origin_box(p, vec3(10, 5, 2), 0.2));
+    return dist;
+}
+
 float bridge_geom(vec3 p) {
     float dist = bridge_road(p);
     dist = min(dist, bridge_fences(p));
+    dist = min(dist, bridge_pillars(p));
     return dist;
 }
 
@@ -420,7 +432,7 @@ vec3 apply_reflections(vec3 color, ma mat, vec3 p, vec3 direction) {
 }
 
 vec3 render(float u, float v) {
-    vec3 eye_position = vec3(20, 0, 700);
+    vec3 eye_position = vec3(30, -3, 700);
     vec3 forward = normalize(vec3(-150, 2, -3) - eye_position);
     //vec3 eye_position = vec3(-150, 20, 150);
     //vec3 forward = normalize(vec3(-350, 6, -3) - eye_position);
