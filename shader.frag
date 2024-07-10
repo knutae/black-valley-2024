@@ -32,6 +32,20 @@ float origin_box(vec3 p, vec3 dimensions, float corner_radius) {
     return length(max(abs(p) - dimensions, 0.0)) - corner_radius;
 }
 
+mat2 rotate(float degrees) {
+    float a = degrees * HALF_PI / 90;
+    return mat2(cos(a), -sin(a), sin(a), cos(a));
+}
+
+float coarse_box(vec3 p, vec3 dimensions, float corner_radius, float coarseness) {
+    vec3 a = abs(p);
+    vec3 q = p;
+    q.xz *= rotate(40);
+    q.yz *= rotate(50);
+    return length(max(abs(p) - dimensions, 0.0)) - corner_radius
+        + coarseness * sin(q.x * (101 + q.y * (163 + q.z)));
+}
+
 float repeated_windows(vec2 p, vec2 dimensions, float modulo) {
     p = mod(p - 0.5 * modulo, modulo) - 0.5 * modulo;
     return length(max(abs(p) - dimensions, 0.0)) - 0.01;
@@ -106,11 +120,6 @@ float ground(vec3 p) {
         p.y + 1,
         p.z + building_modulo / 4);
     return cliff;
-}
-
-mat2 rotate(float degrees) {
-    float a = degrees * HALF_PI / 90;
-    return mat2(cos(a), -sin(a), sin(a), cos(a));
 }
 
 float sea(vec3 p) {
@@ -265,9 +274,11 @@ void street_lights(vec3 p, inout float dist, inout ma mat) {
     closest_material(dist, mat, light_pole(p), ma(vec3(0.1), 0.9, 0, 10, 0, vec3(0.2)));
 }
 
+float bridge_coarseness = 2e-4;
+
 float bridge_road(vec3 p) {
     p.x = abs(p.x) - 10;
-    return origin_box(p, vec3(8.2, 1, 1000), 0.2);
+    return coarse_box(p, vec3(8.2, 1, 1000), 0.2, bridge_coarseness);
 }
 
 float repeated_fence_pattern(vec2 p) {
@@ -288,12 +299,12 @@ float bridge_fences(vec3 p) {
 float bridge_pillars(vec3 p) {
     p.x = abs(p.x) - 10;
     p.z = abs(p.z) - 150;
-    float dist = origin_box(p, vec3(5, 60, 2), 0.2);
+    float dist = coarse_box(p, vec3(5, 60, 2), 0.2, bridge_coarseness);
     p.x += 5;
     p.y -= 60;
-    dist = min(dist, origin_box(p, vec3(10, 5, 2), 0.2));
+    dist = min(dist, coarse_box(p, vec3(10, 5, 2), 0.2, bridge_coarseness));
     p.y += 100;
-    dist = min(dist, origin_box(p, vec3(10, 3, 4), 0.5));
+    dist = min(dist, coarse_box(p, vec3(10, 3, 4), 0.5, bridge_coarseness));
     return dist;
 }
 
