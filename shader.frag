@@ -297,27 +297,29 @@ float bridge_fences(vec3 p) {
 }
 
 float bridge_pillars(vec3 p) {
-    p.x = abs(p.x) - 10;
+    p.x = abs(p.x) - 20;
     p.z = abs(p.z) - 150;
-    float dist = coarse_box(p, vec3(5, 60, 2), 0.2, bridge_coarseness);
-    p.x += 5;
-    p.y -= 60;
-    dist = min(dist, coarse_box(p, vec3(10, 5, 2), 0.2, bridge_coarseness));
-    p.y += 100;
-    dist = min(dist, coarse_box(p, vec3(10, 3, 4), 0.5, bridge_coarseness));
+    float dist = coarse_box(p, vec3(5, 80, 2), 0.2, bridge_coarseness);
+    p.x += 15;
+    vec3 q = p;
+    q.y -= 60;
+    q.y = abs(q.y) - 20;
+    dist = min(dist, coarse_box(q, vec3(20, 5, 2), 0.2, bridge_coarseness));
+    p.y += 40;
+    dist = min(dist, coarse_box(p, vec3(20, 3, 4), 0.5, bridge_coarseness));
     return dist;
 }
 
 float bridge_wires(vec3 p) {
     float orig_z = p.z;
     float modulo = 300;
-    p.x = abs(p.x) - 10;
-    float radius = 220;
+    p.x = abs(p.x) - 21;
+    float radius = 175;
     p.y -= radius + 3;
     p.z = mod(p.z - 0.5 * modulo, modulo) - 0.5 * modulo;
     vec2 q = vec2(length(p.yz) - radius, p.x);
     float dist = length(q) - 1;
-    dist = max(dist, p.y + radius - 60);
+    dist = max(dist, p.y + radius - 83);
     dist = max(dist, orig_z - modulo);
     dist = max(dist, -orig_z - modulo);
     return dist;
@@ -501,9 +503,10 @@ vec3 apply_reflections(vec3 color, ma mat, vec3 p, vec3 direction) {
 }
 
 vec3 render(float u, float v) {
+    //vec3 eye_position = vec3(-30, 50, 700);
     vec3 eye_position = vec3(30, -3, 700);
     vec3 forward = normalize(vec3(-150, 2, -3) - eye_position);
-    //vec3 eye_position = vec3(50, 50, 350);
+    //vec3 eye_position = vec3(350, 50, 350);
     //vec3 forward = normalize(vec3(-50, 6, 300) - eye_position);
     vec3 up = vec3(0.0, 1.0, 0.0);
     vec3 right = normalize(cross(up, forward));
