@@ -504,8 +504,8 @@ vec3 apply_reflections(vec3 color, ma mat, vec3 p, vec3 direction) {
 
 vec3 render(float u, float v) {
     //vec3 eye_position = vec3(-30, 50, 700);
-    vec3 eye_position = vec3(30, -3, 700);
-    vec3 forward = normalize(vec3(-150, 2, -3) - eye_position);
+    vec3 eye_position = vec3(30, -3, 690);
+    vec3 forward = normalize(vec3(-180, 2, -3) - eye_position);
     //vec3 eye_position = vec3(350, 50, 350);
     //vec3 forward = normalize(vec3(-50, 6, 300) - eye_position);
     vec3 up = vec3(0.0, 1.0, 0.0);
