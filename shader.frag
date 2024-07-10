@@ -282,17 +282,17 @@ float bridge_road(vec3 p) {
 }
 
 float repeated_fence_pattern(vec2 p) {
-    vec2 hole_dimensions = vec2(0.9);
+    vec2 hole_dimensions = vec2(0.9, 1.5);
     float modulo = 2;
     p.x = mod(p.x - 0.5 * modulo, modulo) - 0.5 * modulo;
     return length(max(abs(p) - hole_dimensions, 0.0)) - 0.01;
 }
 
 float bridge_fences(vec3 p) {
-    p.x = abs(p.x) - 20;
-    p.y -= 1;
+    p.x = abs(p.x) - 18;
+    p.y -= 3.5;
     return max(
-        origin_box(p, vec3(0.1, 1, 1000), 0.1),
+        origin_box(p, vec3(0.1, 2, 1000), 0.1),
         -repeated_fence_pattern(p.zy));
 }
 
@@ -334,6 +334,7 @@ float bridge_geom(vec3 p) {
 }
 
 float bridge_light_modulo = 30;
+float bridge_light_offset = 8;
 float bridge_x_offset = -building_modulo / 4;
 float bridge_y_offset = 30;
 
@@ -348,7 +349,7 @@ void bridge_street_lights(vec3 p, inout float dist, inout ma mat) {
     p.z = mod(p.z - 0.5 * bridge_light_modulo, bridge_light_modulo) - 0.5 * bridge_light_modulo;
     p.y -= bridge_y_offset + 10;
     p.x -= bridge_x_offset;
-    p.x = abs(p.x) - 18;
+    p.x = abs(p.x) - bridge_light_offset * 2;
     float light = length(p) - 2;
     vec3 light_color = vec3(0.8, 0.9, 1);
     closest_material(dist, mat, light, ma(0.9 * light_color, 0.1, 0, 10, 0, light_color));
@@ -455,8 +456,8 @@ vec3 phong_lighting(vec3 p, ma mat, vec3 ray_direction) {
     vec3 light_positions[] = {
         vec3(1000, 2000, 1000),
         closest_street_light_pos(p),
-        closest_bridge_light_pos(p, 9),
-        closest_bridge_light_pos(p, -9) };
+        closest_bridge_light_pos(p, bridge_light_offset),
+        closest_bridge_light_pos(p, -bridge_light_offset) };
     vec3 light_colors[] = {
         vec3(0.15),
         vec3(1, 1, 0.5),
