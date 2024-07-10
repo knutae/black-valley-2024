@@ -194,17 +194,16 @@ float FERRIS_WHEEL_RADIUS = 100;
 
 float wheel(vec3 p) {
     vec2 q = vec2(length(p.xy) - FERRIS_WHEEL_RADIUS, p.z);
-    return length(q) - 1;
+    return length(q) - 2;
 }
 
 float wheel_spike(vec3 p) {
     p.x -= clamp(p.x, 0, FERRIS_WHEEL_RADIUS);
-    return length(p) - 0.5;
+    return length(p) - 1;
 }
 
 float wheel_spikes(vec3 p) {
     // polar coordinates
-    p.xy *= rotate(0.1); // workaround for disappearing vertical spikes
     float polar_r = length(p.xy);
     float polar_a = atan(p.y, p.x);
     float angle = 30;
@@ -229,7 +228,7 @@ float wheel_dist(vec3 p) {
 }
 
 vec3 wheel_color(vec3 p) {
-    float polar_r = length(p.xy);
+    float polar_r = min(length(p.xy) + 1, FERRIS_WHEEL_RADIUS);
     float polar_a = atan(p.y, p.x);
     polar_r = FERRIS_WHEEL_RADIUS - polar_r;
     polar_r /= 2;
