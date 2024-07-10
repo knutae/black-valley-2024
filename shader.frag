@@ -321,9 +321,9 @@ float bridge_light_modulo = 30;
 float bridge_x_offset = -building_modulo / 4;
 float bridge_y_offset = 30;
 
-vec3 closest_bridge_light_pos(vec3 p) {
+vec3 closest_bridge_light_pos(vec3 p, float light_x_offset) {
     return vec3(
-        p.x > bridge_x_offset ? bridge_x_offset + 9 : bridge_x_offset - 9,
+        bridge_x_offset + light_x_offset,
         bridge_y_offset + 10,
         round(p.z / bridge_light_modulo) * bridge_light_modulo);
 }
@@ -435,11 +435,17 @@ vec3 apply_fog(vec3 color, float total_distance, vec3 direction) {
 vec3 phong_lighting(vec3 p, ma mat, vec3 ray_direction) {
     vec3 normal = estimate_normal(p);
     // could combine multiple street lights, but one is probably good enough
-    vec3 light_positions[] = { closest_street_light_pos(p), closest_bridge_light_pos(p) };
-    vec3 light_colors[] = { vec3(1, 1, 0.5), vec3(0.8, 0.8, 1) };
-    float light_dropoff[] = { -0.004, -0.02 };
+    vec3 light_positions[] = {
+        closest_street_light_pos(p),
+        closest_bridge_light_pos(p, 9),
+        closest_bridge_light_pos(p, -9) };
+    vec3 light_colors[] = {
+        vec3(1, 1, 0.5),
+        vec3(0.8, 0.9, 1),
+        vec3(0.8, 0.9, 1)};
+    float light_dropoff[] = { -0.004, -0.02, -0.02 };
     vec3 diffuse_and_specular_sum = vec3(0);
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 3; i++) {
         vec3 light_pos = light_positions[i];
         vec3 light_color = light_colors[i];
         vec3 light_direction = normalize(p - light_pos);
