@@ -100,7 +100,7 @@ ma window_material(vec3 p, float modulo, float building_seed) {
         pow(tint.r, 1 + sin(seed)),
         pow(tint.g, 1 + sin(seed*2)),
         pow(tint.b, 1 + sin(seed*3)));
-    return ma(ambience * rgb, 0.9, 0, 10, 0, building_rgb(p, building_seed));
+    return ma(ambience * rgb, 0.9, 0.98, 15, 0, building_rgb(p, building_seed));
 }
 
 ma building_material(vec3 p, float building_seed) {
@@ -382,7 +382,7 @@ float scene(vec3 p, out ma mat) {
     ferris_wheel(p, dist, mat);
     street_lights(p, dist, mat);
     bridge_street_lights(p, dist, mat);
-    closest_material(dist, mat, sea(p), ma(vec3(0.1), 0.9, 0, 10, 0.7, vec3(0.1, 0.1, 0.3)));
+    closest_material(dist, mat, sea(p), ma(vec3(0.1), 0.9, 0.95, 15, 0.7, vec3(0.1, 0.1, 0.3)));
     return dist;
 }
 
