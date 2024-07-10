@@ -124,9 +124,9 @@ float ground(vec3 p) {
 
 float sea(vec3 p) {
     p.xz *= rotate(-10);
-    float wave1 = 0.2 * sin((p.xz * rotate(-10)).y / 4 + 3.1*time);
-    float wave2 = 0.15 * sin((p.xz * rotate(5)).y / 3.9 + 2.1*time);
-    float wave3 = 0.003 * sin((p.xz * rotate(-35)).y / 0.4 + 5*time);
+    float wave1 = 0.2 * sin((p.xz * rotate(-25)).y / 4 + 3.1*time);
+    float wave2 = 0.15 * sin((p.xz * rotate(15)).y / 3.9 + 2.1*time);
+    float wave3 = 0.003 * sin((p.xz * rotate(-50)).y / 0.4 + 5*time);
     float wave4 = 0.002 * sin((p.xz * rotate(40)).y / 0.3 + 3*time);
     return p.y + 10 + wave1 + wave2 + wave3 + wave4;
 }
