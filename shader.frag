@@ -232,7 +232,7 @@ vec3 wheel_color(vec3 p) {
 
 void ferris_wheel(vec3 p, inout float dist, inout ma mat) {
     p.z += 30;
-    p.x += 300;
+    p.x += 700;
     p.y -= FERRIS_WHEEL_RADIUS + 10;
     vec3 col = wheel_color(p);
     closest_material(dist, mat, wheel_dist(p), ma(0.9 * col, 0.1, 0, 10, 0, col));
@@ -265,12 +265,44 @@ void street_lights(vec3 p, inout float dist, inout ma mat) {
     closest_material(dist, mat, light_pole(p), ma(vec3(0.1), 0.9, 0, 10, 0, vec3(0.2)));
 }
 
+float bridge_road(vec3 p) {
+    return origin_box(p, vec3(19, 1, 1000), 0.1);
+}
+
+float repeated_fence_pattern(vec2 p) {
+    vec2 hole_dimensions = vec2(0.9);
+    float modulo = 2;
+    p.x = mod(p.x - 0.5 * modulo, modulo) - 0.5 * modulo;
+    return length(max(abs(p) - hole_dimensions, 0.0)) - 0.01;
+}
+
+float bridge_fences(vec3 p) {
+    p.x = abs(p.x) - 20;
+    p.y -= 1;
+    return max(
+        origin_box(p, vec3(0.1, 1, 1000), 0.1),
+        -repeated_fence_pattern(p.zy));
+}
+
+float bridge_geom(vec3 p) {
+    float dist = bridge_road(p);
+    dist = min(dist, bridge_fences(p));
+    return dist;
+}
+
+void bridge(vec3 p, inout float dist, inout ma mat) {
+    p.x += building_modulo / 4;
+    p.y -= 30;
+    closest_material(dist, mat, bridge_geom(p), ma(vec3(0.1), 0.9, 0, 10, 0, vec3(1)));
+}
+
 // Simplified scene for shadow calculations, should not contain light source geometries.
 float shadow_scene(vec3 p, out ma mat) {
     float dist = ground(p);
     mat = ma(vec3(0.1), 0.9, 0, 10, 0.0, vec3(0.8));
     city(p, dist, mat);
     closest_material(dist, mat, waterfront_stairs(p), ma(vec3(0.1), 0.9, 0, 10, 0, vec3(0.7)));
+    bridge(p, dist, mat);
     //ferris_wheel(p, dist, mat);
     //street_lights(p, dist, mat);
     //closest_material(dist, mat, sea(p), ma(0.1, 0.9, 0, 10, 0.7, vec3(0.1, 0.1, 0.3)));
@@ -388,8 +420,8 @@ vec3 apply_reflections(vec3 color, ma mat, vec3 p, vec3 direction) {
 }
 
 vec3 render(float u, float v) {
-    vec3 eye_position = vec3(20, 2, 700);
-    vec3 forward = normalize(vec3(0, 2, -3) - eye_position);
+    vec3 eye_position = vec3(20, 0, 700);
+    vec3 forward = normalize(vec3(-150, 2, -3) - eye_position);
     //vec3 eye_position = vec3(-150, 20, 150);
     //vec3 forward = normalize(vec3(-350, 6, -3) - eye_position);
     vec3 up = vec3(0.0, 1.0, 0.0);
