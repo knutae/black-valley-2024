@@ -447,7 +447,7 @@ vec3 background_color(vec3 direction) {
 }
 
 vec3 apply_fog(vec3 color, float total_distance, vec3 direction) {
-    return mix(color, background_color(direction), 1.0 - exp(-0.0003 * total_distance));
+    return mix(color, background_color(direction), 1.0 - exp(-0.0006 * total_distance));
 }
 
 vec3 phong_lighting(vec3 p, ma mat, vec3 ray_direction) {
