@@ -438,16 +438,18 @@ vec3 phong_lighting(vec3 p, ma mat, vec3 ray_direction) {
     vec3 normal = estimate_normal(p);
     // could combine multiple street lights, but one is probably good enough
     vec3 light_positions[] = {
+        vec3(1000, 2000, 1000),
         closest_street_light_pos(p),
         closest_bridge_light_pos(p, 9),
         closest_bridge_light_pos(p, -9) };
     vec3 light_colors[] = {
+        vec3(0.15),
         vec3(1, 1, 0.5),
         vec3(0.8, 0.9, 1),
         vec3(0.8, 0.9, 1)};
-    float light_dropoff[] = { -0.004, -0.02, -0.02 };
+    float light_dropoff[] = { -1e-5, -0.004, -0.02, -0.02 };
     vec3 diffuse_and_specular_sum = vec3(0);
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {
         vec3 light_pos = light_positions[i];
         vec3 light_color = light_colors[i];
         vec3 light_direction = normalize(p - light_pos);
