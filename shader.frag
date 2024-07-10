@@ -292,6 +292,8 @@ float bridge_pillars(vec3 p) {
     p.x += 5;
     p.y -= 60;
     dist = min(dist, origin_box(p, vec3(10, 5, 2), 0.2));
+    p.y += 100;
+    dist = min(dist, origin_box(p, vec3(10, 3, 4), 0.5));
     return dist;
 }
 
