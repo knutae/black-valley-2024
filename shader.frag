@@ -233,7 +233,7 @@ vec3 wheel_color(vec3 p) {
     float polar_r = min(length(p.xy) + 1, FERRIS_WHEEL_RADIUS);
     float polar_a = atan(p.y, p.x);
     polar_r = FERRIS_WHEEL_RADIUS - polar_r;
-    polar_r /= 2;
+    polar_r /= 4;
     float r = 0.6 + 0.4 * sin(polar_r + HALF_PI);
     float g = 0.6 + 0.4 * sin(polar_r * 2 - HALF_PI);
     float b = 0.6 + 0.4 * sin(polar_r / 2);
