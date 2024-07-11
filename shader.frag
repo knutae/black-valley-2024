@@ -193,6 +193,7 @@ void city(vec3 p, inout float dist, inout ma mat) {
 float FERRIS_WHEEL_RADIUS = 100;
 
 float wheel(vec3 p) {
+    p.z = abs(p.z) - 3;
     vec2 q = vec2(length(p.xy) - FERRIS_WHEEL_RADIUS, p.z);
     return length(q) - 2;
 }
@@ -203,6 +204,7 @@ float wheel_spike(vec3 p) {
 }
 
 float wheel_spikes(vec3 p) {
+    p.z = abs(p.z) - 3;
     // polar coordinates
     float polar_r = length(p.xy);
     float polar_a = atan(p.y, p.x);
