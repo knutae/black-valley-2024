@@ -312,12 +312,21 @@ float bridge_pillars(vec3 p) {
 float bridge_wires(vec3 p) {
     float orig_z = p.z;
     float modulo = 300;
-    p.x = abs(p.x) - 21;
     float radius = 175;
-    p.y -= radius + 3;
+    p.x = abs(p.x) - 20;
     p.z = mod(p.z - 0.5 * modulo, modulo) - 0.5 * modulo;
+    // Strings hanging from cables
+    vec3 p2 = p;
+    float string_modulo = 6;
+    p2.y -= radius/2;
+    p2.z = mod(p2.z - 0.5 * string_modulo, string_modulo) - 0.5 * string_modulo;
+    p.y -= radius + 3;
+    float string_dist = max(
+        light_pole(p2, radius/2, 0.2),
+        -length(p.yz) + radius);
     vec2 q = vec2(length(p.yz) - radius, p.x);
     float dist = length(q) - 1;
+    dist = min(dist, string_dist);
     dist = max(dist, p.y + radius - 83);
     dist = max(dist, orig_z - modulo);
     dist = max(dist, -orig_z - modulo);
@@ -527,8 +536,8 @@ vec3 render(float u, float v) {
     //vec3 eye_position = vec3(-30, 50, 700);
     vec3 eye_position = vec3(30, -3, 690);
     vec3 forward = normalize(vec3(-180, 2, -3) - eye_position);
-    //vec3 eye_position = vec3(350, 50, 350);
-    //vec3 forward = normalize(vec3(-50, 6, 300) - eye_position);
+    //vec3 eye_position = vec3(150, 50, 350);
+    //vec3 forward = normalize(vec3(-50, 56, 300) - eye_position);
     vec3 up = vec3(0.0, 1.0, 0.0);
     vec3 right = normalize(cross(up, forward));
     up = cross(-right, forward);
