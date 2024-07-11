@@ -278,8 +278,8 @@ void street_lights(vec3 p, inout float dist, inout ma mat) {
 float bridge_coarseness = 2e-4;
 
 float bridge_road(vec3 p) {
-    p.x = abs(p.x) - 10;
-    return coarse_box(p, vec3(8.2, 1, 1000), 0.2, bridge_coarseness);
+    p.x = abs(p.x) - 11;
+    return coarse_box(p, vec3(9.5, 1, 1000), 0.2, bridge_coarseness);
 }
 
 float repeated_fence_pattern(vec2 p) {
@@ -324,7 +324,7 @@ float bridge_wires(vec3 p) {
     p2.z = mod(p2.z - 0.5 * string_modulo, string_modulo) - 0.5 * string_modulo;
     p.y -= radius + 3;
     float string_dist = max(
-        light_pole(p2, radius/2, 0.2),
+        light_pole(p2, radius/2, 0.15),
         -length(p.yz) + radius);
     vec2 q = vec2(length(p.yz) - radius, p.x);
     float dist = length(q) - 1;
@@ -535,7 +535,7 @@ vec3 apply_reflections(vec3 color, ma mat, vec3 p, vec3 direction) {
 }
 
 vec3 render(float u, float v) {
-    //vec3 eye_position = vec3(-30, 50, 700);
+    //vec3 eye_position = vec3(-35, 50, 700);
     vec3 eye_position = vec3(30, -3, 690);
     vec3 forward = normalize(vec3(-180, 2, -3) - eye_position);
     //vec3 eye_position = vec3(150, 50, 350);
