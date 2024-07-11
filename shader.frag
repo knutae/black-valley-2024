@@ -203,8 +203,9 @@ float wheel_spike(vec3 p) {
     return length(p) - 1;
 }
 
-float wheel_spikes(vec3 p) {
-    p.z = abs(p.z) - 3;
+float wheel_spikes(vec3 p, float offset) {
+    p.xy *= rotate(2.5 * time);
+    p.z = abs(p.z) - offset;
     // polar coordinates
     float polar_r = length(p.xy);
     float polar_a = atan(p.y, p.x);
@@ -225,8 +226,11 @@ float wheel_support(vec3 p) {
 }
 
 float wheel_dist(vec3 p) {
-    p.xy *= rotate(2.5 * time);
-    return min(wheel(p), wheel_spikes(p));
+    return min(wheel(p), wheel_spikes(p, 3));
+}
+
+float wheel_spikes_protection(vec3 p) {
+    return wheel_spikes(p, 2.5);
 }
 
 vec3 wheel_color(vec3 p) {
@@ -248,6 +252,8 @@ void ferris_wheel(vec3 p, inout float dist, inout ma mat) {
     closest_material(dist, mat, wheel_dist(p), ma(0.9 * col, 0.1, 0, 10, 0, col));
     col = vec3(0.7, 1, 0.7);
     closest_material(dist, mat, wheel_support(p), ma(0.9 * col, 0.1, 0, 10, 0, col));
+    // spikes in a darker material partially hide the back spikes
+    closest_material(dist, mat, wheel_spikes_protection(p), ma(vec3(0.1), 0.1, 0, 10, 0, vec3(0.5)));
 }
 
 float light_pole(vec3 p, float height, float radius) {
