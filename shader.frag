@@ -199,8 +199,10 @@ float wheel(vec3 p) {
 }
 
 float wheel_spike(vec3 p) {
-    p.x -= clamp(p.x, 0, FERRIS_WHEEL_RADIUS);
-    return length(p) - 1;
+    float c = length(p.xy) - FERRIS_WHEEL_RADIUS;
+    float modulo = 10;
+    p.x = mod(p.x - 0.5 * modulo, modulo) - 0.5 * modulo;
+    return max(origin_box(p, vec3(modulo * 0.3, 2, 0.5), 0.1), c);
 }
 
 float wheel_spikes(vec3 p, float offset) {
@@ -225,18 +227,15 @@ float wheel_support(vec3 p) {
     return length(p) - 1;
 }
 
-float wheel_dist(vec3 p) {
-    return min(wheel(p), wheel_spikes(p, 3));
-}
-
 float wheel_spikes_protection(vec3 p) {
     return wheel_spikes(p, 2.5);
 }
 
-vec3 wheel_color(vec3 p) {
+vec3 spike_color(vec3 p) {
     float polar_r = min(length(p.xy) + 1, FERRIS_WHEEL_RADIUS);
     float polar_a = atan(p.y, p.x);
     polar_r = FERRIS_WHEEL_RADIUS - polar_r;
+    polar_r = round(polar_r / 10 + time / 5) * 10;
     polar_r /= 4;
     float r = 0.6 + 0.4 * sin(polar_r + HALF_PI);
     float g = 0.6 + 0.4 * sin(polar_r * 2 - HALF_PI);
@@ -248,8 +247,10 @@ void ferris_wheel(vec3 p, inout float dist, inout ma mat) {
     p.z += 30;
     p.x += 700;
     p.y -= FERRIS_WHEEL_RADIUS + 10;
-    vec3 col = wheel_color(p);
-    closest_material(dist, mat, wheel_dist(p), ma(0.9 * col, 0.1, 0, 10, 0, col));
+    vec3 col = spike_color(p);
+    closest_material(dist, mat, wheel_spikes(p, 3), ma(0.9 * col, 0.1, 0, 10, 0, col));
+    col = vec3(1, 0.3, 0.5);
+    closest_material(dist, mat, wheel(p), ma(0.9 * col, 0.1, 0, 10, 0, col));
     col = vec3(0.7, 1, 0.7);
     closest_material(dist, mat, wheel_support(p), ma(0.9 * col, 0.1, 0, 10, 0, col));
     // spikes in a darker material partially hide the back spikes
