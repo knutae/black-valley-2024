@@ -223,7 +223,7 @@ float wheel_support(vec3 p) {
     p.z = abs(p.z) - 5;
     p.x = abs(p.x);
     p.xy *= rotate(70);
-    p.x -= clamp(p.x, 0, FERRIS_WHEEL_RADIUS * 1.25);
+    p.x -= clamp(p.x, 0.0, FERRIS_WHEEL_RADIUS * 1.25);
     return length(p) - 1;
 }
 
@@ -259,7 +259,7 @@ void ferris_wheel(vec3 p, inout float dist, inout ma mat) {
 
 float light_pole(vec3 p, float height, float radius) {
     p.y += height;
-    p.y -= clamp(p.y, 0, height + 2);
+    p.y -= clamp(p.y, 0.0, height + 2);
     return length(p) - radius;
 }
 
